@@ -2361,6 +2361,8 @@ static void CommonPPUReset()
    S9xFixColourBrightness();
    IPPU.PreviousLine = IPPU.CurrentLine = 0;
 
+   IPPU.Controller = Settings.ControllerOption;
+
    for (c = 0; c < 2; c++)
       memset(&IPPU.Clip [c], 0, sizeof(struct ClipData));
 

@@ -424,7 +424,7 @@ uint32_t S9xReadJoypad(int port)
 			   Settings.MultiPlayer5 = true;
 			   Settings.ControllerOption = SNES_MULTIPLAYER5;
 			   IPPU.Controller = SNES_MULTIPLAYER5;
-		   }		 
+		   }
 	   }
    }
 
