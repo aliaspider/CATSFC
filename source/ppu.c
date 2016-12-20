@@ -2363,11 +2363,7 @@ static void CommonPPUReset()
    S9xFixColourBrightness();
    IPPU.PreviousLine = IPPU.CurrentLine = 0;
 
-   if (Settings.ControllerOption == 0)
-      IPPU.Controller = SNES_MAX_CONTROLLER_OPTIONS - 1;
-   else
-      IPPU.Controller = Settings.ControllerOption - 1;
-   S9xNextController();
+   IPPU.Controller = Settings.ControllerOption;
 
    for (c = 0; c < 2; c++)
       memset(&IPPU.Clip [c], 0, sizeof(struct ClipData));
@@ -2544,7 +2540,9 @@ void ProcessSuperScope()
    }
 }
 
-void S9xNextController()
+// DJW: Not what why this function exists given that
+// it's only called once unecessarily
+/*void S9xNextController()
 {
    switch (IPPU.Controller)
    {
@@ -2592,6 +2590,7 @@ void S9xNextController()
       break;
    }
 }
+*/
 
 void S9xUpdateJustifiers()
 {

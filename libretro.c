@@ -376,7 +376,7 @@ void init_sfc_setting(void)
    Settings.DisableMasterVolume = false;
    Settings.Mouse = true;
    Settings.SuperScope = true;
-   Settings.MultiPlayer5 = true;
+   Settings.MultiPlayer5 = false;
    Settings.ControllerOption = SNES_JOYPAD;
 
    Settings.Transparency = true;
@@ -489,8 +489,21 @@ uint32_t S9xReadJoypad(int port)
    uint32_t joypad = 0;
 
    for (i = RETRO_DEVICE_ID_JOYPAD_B; i <= RETRO_DEVICE_ID_JOYPAD_R; i++)
-      if (input_cb(port, RETRO_DEVICE_JOYPAD, 0, i))
-         joypad |= snes_lut[i];
+   {
+	   if (input_cb(port, RETRO_DEVICE_JOYPAD, 0, i))
+	   {
+		   joypad |= snes_lut[i];
+
+		   // DJW If a button was pressed on controller 3 or 4 then we
+		   // want to enable the multitap
+		   if(i > 1 && !Settings.MultiPlayer5)
+		   {
+			   Settings.MultiPlayer5 = true;
+			   Settings.ControllerOption = SNES_MULTIPLAYER5;
+			   IPPU.Controller = SNES_MULTIPLAYER5;
+		   }
+	   }
+   }
 
    return joypad;
 }
