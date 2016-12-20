@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -100,10 +102,7 @@
 #define M7 19
 #define M8 19
 
-void output_png();
 void ComputeClipWindows();
-static void S9xDisplayFrameRate();
-static void S9xDisplayString(const char* string);
 
 extern uint8_t BitShifts[8][4];
 extern uint8_t TileShifts[8][4];
@@ -256,17 +255,17 @@ void DrawLargePixel16Sub1_2(uint32_t Tile, int32_t Offset,
 
 bool S9xInitGFX()
 {
-   register uint32_t PixelOdd = 1;
-   register uint32_t PixelEven = 2;
+   uint32_t PixelOdd = 1;
+   uint32_t PixelEven = 2;
 
    uint8_t bitshift;
    for (bitshift = 0; bitshift < 4; bitshift++)
    {
-      register int i;
+      int i;
       for (i = 0; i < 16; i++)
       {
-         register uint32_t h = 0;
-         register uint32_t l = 0;
+         uint32_t h = 0;
+         uint32_t l = 0;
 
 #if defined(MSB_FIRST)
          if (i & 8)
@@ -717,11 +716,7 @@ void S9xEndScreenRefresh()
 #endif
 
    if (CPU.SRAMModified)
-   {
-      S9xAutoSaveSRAM();
       CPU.SRAMModified = false;
-   }
-
 }
 
 void S9xSetInfoString(const char* string)
@@ -1063,7 +1058,6 @@ static void DrawOBJS(bool OnMain, uint8_t D)
    if (Settings.BGLayering) fprintf(stderr, "Entering DrawOBJS() for %d-%d\n",
                                        GFX.StartY, GFX.EndY);
 #endif
-   CHECK_SOUND();
 
    BG.BitShift = 4;
    BG.TileShift = 5;
@@ -1300,8 +1294,6 @@ static void DrawOBJS(bool OnMain, uint8_t D)
 
 static void DrawBackgroundMosaic(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8_t Z2)
 {
-   CHECK_SOUND();
-
    uint32_t Tile;
    uint16_t* SC0;
    uint16_t* SC1;
@@ -1531,8 +1523,6 @@ static void DrawBackgroundMosaic(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8
 
 static void DrawBackgroundOffset(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8_t Z2)
 {
-   CHECK_SOUND();
-
    uint32_t Tile;
    uint16_t* SC0;
    uint16_t* SC1;
@@ -1868,8 +1858,6 @@ static void DrawBackgroundOffset(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8
 
 static void DrawBackgroundMode5(uint32_t bg, uint8_t Z1, uint8_t Z2)
 {
-   CHECK_SOUND();
-
    if (IPPU.Interlace)
    {
       GFX.Pitch = GFX.RealPitch;
@@ -2239,7 +2227,6 @@ static void DrawBackground(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8_t Z2)
       //    }
       break;
    }
-   CHECK_SOUND();
 
    uint32_t Tile;
    uint16_t* SC0;
@@ -2566,7 +2553,6 @@ static void DrawBackground(uint32_t BGMode, uint32_t bg, uint8_t Z1, uint8_t Z2)
 #define RENDER_BACKGROUND_MODE7(TYPE,FUNC) \
     uint16_t *ScreenColors = IPPU.ScreenColors; \
     (void)ScreenColors; \
-    CHECK_SOUND(); \
 \
     uint8_t *VRAM1 = Memory.VRAM + 1; \
     if (GFX.r2130 & 1) \
@@ -2757,8 +2743,6 @@ static void DrawBGMode7Background16Sub1_2(uint8_t* Screen, int bg)
 
 #define RENDER_BACKGROUND_MODE7_i(TYPE,FUNC,COLORFUNC) \
     uint16_t *ScreenColors; \
-    CHECK_SOUND(); \
-\
     uint8_t *VRAM1 = Memory.VRAM + 1; \
     if (GFX.r2130 & 1) \
     { \
@@ -3129,13 +3113,13 @@ static void DrawBGMode7Background16Sub1_2(uint8_t* Screen, int bg)
         } \
     }
 
-STATIC uint32_t Q_INTERPOLATE(uint32_t A, uint32_t B, uint32_t C, uint32_t D)
+static uint32_t Q_INTERPOLATE(uint32_t A, uint32_t B, uint32_t C, uint32_t D)
 {
-   register uint32_t x = ((A >> 2) & HIGH_BITS_SHIFTED_TWO_MASK) +
+   uint32_t x = ((A >> 2) & HIGH_BITS_SHIFTED_TWO_MASK) +
                        ((B >> 2) & HIGH_BITS_SHIFTED_TWO_MASK) +
                        ((C >> 2) & HIGH_BITS_SHIFTED_TWO_MASK) +
                        ((D >> 2) & HIGH_BITS_SHIFTED_TWO_MASK);
-   register uint32_t y = (A & TWO_LOW_BITS_MASK) +
+   uint32_t y = (A & TWO_LOW_BITS_MASK) +
                        (B & TWO_LOW_BITS_MASK) +
                        (C & TWO_LOW_BITS_MASK) +
                        (D & TWO_LOW_BITS_MASK);
@@ -3422,51 +3406,7 @@ void DisplayChar(uint8_t* Screen, uint8_t c)
    }
 }
 
-static void S9xDisplayFrameRate()
-{
-   uint8_t* Screen = GFX.Screen + 2 +
-                   (IPPU.RenderedScreenHeight - font_height - 1) * GFX.Pitch2;
-   char string [10];
-   int len = 5;
-
-   sprintf(string, "%02d/%02d", IPPU.DisplayedRenderedFrameCount,
-           (int) Memory.ROMFramesPerSecond);
-
-   int i;
-   for (i = 0; i < len; i++)
-   {
-      DisplayChar(Screen, string [i]);
-      Screen += (font_width - 1) * sizeof(uint16_t);
-   }
-}
-
-static void S9xDisplayString(const char* string)
-{
-   uint8_t* Screen = GFX.Screen + 2 +
-                   (IPPU.RenderedScreenHeight - font_height * 5) * GFX.Pitch2;
-   int len = strlen(string);
-   int max_chars = IPPU.RenderedScreenWidth / (font_width - 1);
-   int char_count = 0;
-   int i;
-
-   for (i = 0; i < len; i++, char_count++)
-   {
-      if (char_count >= max_chars || string [i] < 32)
-      {
-         Screen -= (font_width - 1) * max_chars * sizeof(uint16_t);
-         Screen += font_height * GFX.Pitch;
-         if (Screen >= GFX.Screen + GFX.Pitch * IPPU.RenderedScreenHeight)
-            break;
-         char_count -= max_chars;
-      }
-      if (string [i] < 32)
-         continue;
-      DisplayChar(Screen, string [i]);
-      Screen += (font_width - 1) * sizeof(uint16_t);
-   }
-}
-
-void S9xUpdateScreen()
+void S9xUpdateScreen(void)
 {
    int32_t x2 = 1;
 
@@ -3529,13 +3469,12 @@ void S9xUpdateScreen()
       {
          // The game has switched from lo-res to hi-res mode part way down
          // the screen. Scale any existing lo-res pixels on screen
-         register uint32_t y;
+         uint32_t y;
          for (y = 0; y < starty; y++)
          {
-            register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 255;
-            register uint16_t* q = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 510;
-
-            register int x;
+            int x;
+            uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 255;
+            uint16_t* q = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 510;
             for (x = 255; x >= 0; x--, p--, q -= 2)
                * q = *(q + 1) = *p;
          }
@@ -3557,7 +3496,7 @@ void S9xUpdateScreen()
 
          // The game has switched from non-interlaced to interlaced mode
          // part way down the screen. Scale everything.
-         register int32_t y;
+         int32_t y;
          for (y = (int32_t) GFX.StartY - 1; y >= 0; y--)
          {
             // memmove converted: Same malloc, different addresses, and identical addresses at line 0 [Neb]
@@ -3700,9 +3639,9 @@ void S9xUpdateScreen()
             uint32_t y;
             for (y = starty; y <= endy; y++)
             {
-               register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2);
-               register uint8_t* d = GFX.SubZBuffer + y * GFX.ZPitch;
-               register uint8_t* e = d + IPPU.RenderedScreenWidth;
+               uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2);
+               uint8_t* d = GFX.SubZBuffer + y * GFX.ZPitch;
+               uint8_t* e = d + IPPU.RenderedScreenWidth;
 
                while (d < e)
                {
@@ -3752,11 +3691,11 @@ void S9xUpdateScreen()
                   {
                      if (GFX.r2131 & 0x40)
                      {
-                        // Subtract, halving the result.
-                        register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
-                        register uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
-                        register uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
-                        register uint8_t* e = d + Right;
+                        /* Subtract, halving the result. */
+                        uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
+                        uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
+                        uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
+                        uint8_t* e = d + Right;
                         uint16_t back_fixed = COLOR_SUB(back, GFX.FixedColour);
 
                         d += Left;
@@ -3782,10 +3721,10 @@ void S9xUpdateScreen()
                      else
                      {
                         // Subtract
-                        register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
-                        register uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
-                        register uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
-                        register uint8_t* e = d + Right;
+                        uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
+                        uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
+                        uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
+                        uint8_t* e = d + Right;
                         uint16_t back_fixed = COLOR_SUB(back, GFX.FixedColour);
 
                         d += Left;
@@ -3811,10 +3750,10 @@ void S9xUpdateScreen()
                   }
                   else if (GFX.r2131 & 0x40)
                   {
-                     register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
-                     register uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
-                     register uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
-                     register uint8_t* e = d + Right;
+                     uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
+                     uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
+                     uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
+                     uint8_t* e = d + Right;
                      uint16_t back_fixed = COLOR_ADD(back, GFX.FixedColour);
                      d += Left;
                      while (d < e)
@@ -3838,10 +3777,10 @@ void S9xUpdateScreen()
                   }
                   else if (back != 0)
                   {
-                     register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
-                     register uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
-                     register uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
-                     register uint8_t* e = d + Right;
+                     uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
+                     uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
+                     uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
+                     uint8_t* e = d + Right;
                      uint16_t back_fixed = COLOR_ADD(back, GFX.FixedColour);
                      d += Left;
                      while (d < e)
@@ -3871,10 +3810,10 @@ void S9xUpdateScreen()
                         // copy the sub-screen to the main screen
                         // or fill it with the back-drop colour if the
                         // sub-screen is clear.
-                        register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
-                        register uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
-                        register uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
-                        register uint8_t* e = d + Right;
+                        uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + Left;
+                        uint8_t* d = GFX.ZBuffer + y * GFX.ZPitch;
+                        uint8_t* s = GFX.SubZBuffer + y * GFX.ZPitch + Left;
+                        uint8_t* e = d + Right;
                         d += Left;
                         while (d < e)
                         {
@@ -4018,12 +3957,12 @@ void S9xUpdateScreen()
       {
          // Mixture of background modes used on screen - scale width
          // of all non-mode 5 and 6 pixels.
-         register uint32_t y;
+         uint32_t y;
          for (y = starty; y <= endy; y++)
          {
-            register uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 255;
-            register uint16_t* q = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 510;
-            register int x;
+            int x;
+            uint16_t* p = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 255;
+            uint16_t* q = (uint16_t*)(GFX.Screen + y * GFX.Pitch2) + 510;
             for (x = 255; x >= 0; x--, p--, q -= 2)
                * q = *(q + 1) = *p;
          }

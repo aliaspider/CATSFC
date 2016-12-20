@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -142,9 +144,18 @@ static int retry_count = 0;
 static uint8_t bytes0x2000 [0x2000];
 int is_bsx(unsigned char*);
 int bs_name(unsigned char*);
-int check_char(unsigned);
+
+static int check_char(unsigned c)
+{
+   if ((c & 0x80) == 0)
+      return 0;
+   if ((c - 0x20) & 0x40)
+      return 1;
+   return 0;
+}
+
 void S9xDeinterleaveType2(bool reset);
-uint32_t caCRC32(uint8_t* array, uint32_t size, register uint32_t crc32);
+uint32_t caCRC32(uint8_t* array, uint32_t size, uint32_t crc32);
 
 extern char* rom_filename;
 
@@ -273,7 +284,7 @@ void S9xDeinterleaveGD24(int TotalFileSize, uint8_t* base)
    }
 }
 
-bool AllASCII(uint8_t* b, int size)
+static bool AllASCII(uint8_t* b, int size)
 {
    int i;
    for (i = 0; i < size; i++)
@@ -284,7 +295,7 @@ bool AllASCII(uint8_t* b, int size)
    return (true);
 }
 
-int ScoreHiROM(bool skip_header, int32_t romoff)
+static int ScoreHiROM(bool skip_header, int32_t romoff)
 {
    int score = 0;
    int o = skip_header ? 0xff00 + 0x200 : 0xff00;
@@ -329,7 +340,7 @@ int ScoreHiROM(bool skip_header, int32_t romoff)
    return (score);
 }
 
-int ScoreLoROM(bool skip_header, int32_t romoff)
+static int ScoreLoROM(bool skip_header, int32_t romoff)
 {
    int score = 0;
    int o = skip_header ? 0x7f00 + 0x200 : 0x7f00;
@@ -371,7 +382,7 @@ int ScoreLoROM(bool skip_header, int32_t romoff)
    return (score);
 }
 
-char* Safe(const char* s)
+static char* Safe(const char* s)
 {
    static char* safe;
    static int safe_len = 0;
@@ -573,16 +584,254 @@ void FreeSDD1Data()
    }
 }
 
+#ifndef LOAD_FROM_MEMORY_TEST
+
+/* Read variable size MSB int from a file */
+static long ReadInt(FILE* f, unsigned nbytes)
+{
+   long v = 0;
+   while (nbytes--)
+   {
+      int c = fgetc(f);
+      if (c == EOF)
+         return -1;
+      v = (v << 8) | (c & 0xFF);
+   }
+   return (v);
+}
+
+#define IPS_EOF 0x00454F46l
+
+static void CheckForIPSPatch(const char* rom_filename, bool header,
+                      int32_t* rom_size)
+{
+   char  dir [_MAX_DIR + 1];
+   char  drive [_MAX_DRIVE + 1];
+   char  name [_MAX_FNAME + 1];
+   char  ext [_MAX_EXT + 1];
+   char  fname [_MAX_PATH + 1];
+   FILE*  patch_file  = NULL;
+   long  offset = header ? 512 : 0;
+
+   _splitpath(rom_filename, drive, dir, name, ext);
+   _makepath(fname, drive, dir, name, "ips");
+
+   if (!(patch_file = fopen(fname, "rb")))
+   {
+      if (!(patch_file = fopen(S9xGetFilename("ips"), "rb")))
+         return;
+   }
+
+   if (fread((unsigned char*)fname, 1, 5, patch_file) != 5 ||
+         strncmp(fname, "PATCH", 5) != 0)
+   {
+      fclose(patch_file);
+      return;
+   }
+
+   int32_t ofs;
+
+   for (;;)
+   {
+      long len;
+      long rlen;
+      int  rchar;
+
+      ofs = ReadInt(patch_file, 3);
+      if (ofs == -1)
+         goto err_eof;
+
+      if (ofs == IPS_EOF)
+         break;
+
+      ofs -= offset;
+
+      len = ReadInt(patch_file, 2);
+      if (len == -1)
+         goto err_eof;
+
+      /* Apply patch block */
+      if (len)
+      {
+         if (ofs + len > MAX_ROM_SIZE)
+            goto err_eof;
+
+         while (len--)
+         {
+            rchar = fgetc(patch_file);
+            if (rchar == EOF)
+               goto err_eof;
+            Memory.ROM [ofs++] = (uint8_t) rchar;
+         }
+         if (ofs > *rom_size)
+            *rom_size = ofs;
+      }
+      else
+      {
+         rlen = ReadInt(patch_file, 2);
+         if (rlen == -1)
+            goto err_eof;
+
+         rchar = fgetc(patch_file);
+         if (rchar == EOF)
+            goto err_eof;
+
+         if (ofs + rlen > MAX_ROM_SIZE)
+            goto err_eof;
+
+         while (rlen--)
+            Memory.ROM [ofs++] = (uint8_t) rchar;
+
+         if (ofs > *rom_size)
+            *rom_size = ofs;
+      }
+   }
+
+   // Check if ROM image needs to be truncated
+   ofs = ReadInt(patch_file, 3);
+   if (ofs != -1 && ofs - offset < *rom_size)
+   {
+      // Need to truncate ROM image
+      *rom_size = ofs - offset;
+   }
+   fclose(patch_file);
+   return;
+
+err_eof:
+   if (patch_file)
+      fclose(patch_file);
+}
+
+static uint32_t FileLoader(uint8_t* buffer, const char* filename, int32_t maxsize)
+{
+   FILE* ROMFile;
+   int32_t TotalFileSize = 0;
+   int len = 0;
+
+   char dir [_MAX_DIR + 1];
+   char drive [_MAX_DRIVE + 1];
+   char name [_MAX_FNAME + 1];
+   char ext [_MAX_EXT + 1];
+   char fname [_MAX_PATH + 1];
+
+   unsigned long FileSize = 0;
+
+   _splitpath(filename, drive, dir, name, ext);
+   _makepath(fname, drive, dir, name, ext);
+
+#ifdef __WIN32__
+   // memmove required: Overlapping addresses [Neb]
+   memmove(&ext [0], &ext[1], 4);
+#endif
+
+   if ((ROMFile = fopen(fname, "rb")) == NULL)
+      return (0);
+
+   strcpy(Memory.ROMFilename, fname);
+
+   Memory.HeaderCount = 0;
+   uint8_t* ptr = buffer;
+   bool more = false;
+
+   do
+   {
+      FileSize = fread(ptr, 1, maxsize + 0x200 - (ptr - Memory.ROM), ROMFile);
+      fclose(ROMFile);
+
+      int calc_size = FileSize & ~0x1FFF; // round to the lower 0x2000
+
+      if ((FileSize - calc_size == 512 && !Settings.ForceNoHeader) ||
+            Settings.ForceHeader)
+      {
+         // memmove required: Overlapping addresses [Neb]
+         // DS2 DMA notes: Can be split into 512-byte DMA blocks [Neb]
+#ifdef DS2_DMA
+         __dcache_writeback_all();
+         {
+            unsigned int i;
+            for (i = 0; i < calc_size; i += 512)
+            {
+               ds2_DMAcopy_32Byte(2 /* channel: emu internal */, ptr + i, ptr + i + 512, 512);
+               ds2_DMA_wait(2);
+               ds2_DMA_stop(2);
+            }
+         }
+#else
+         memmove(ptr, ptr + 512, calc_size);
+#endif
+         Memory.HeaderCount++;
+         FileSize -= 512;
+      }
+
+      ptr += FileSize;
+      TotalFileSize += FileSize;
+
+
+      // check for multi file roms
+
+      if ((ptr - Memory.ROM) < (maxsize + 0x200) &&
+            (isdigit(ext [0]) && ext [1] == 0 && ext [0] < '9'))
+      {
+         more = true;
+         ext [0]++;
+#ifdef __WIN32__
+         // memmove required: Overlapping addresses [Neb]
+         memmove(&ext [1], &ext [0], 4);
+         ext [0] = '.';
+#endif
+         _makepath(fname, drive, dir, name, ext);
+      }
+      else if (ptr - Memory.ROM < maxsize + 0x200 &&
+               (((len = strlen(name)) == 7 || len == 8) &&
+                strncasecmp(name, "sf", 2) == 0 &&
+                isdigit(name [2]) && isdigit(name [3]) && isdigit(name [4]) &&
+                isdigit(name [5]) && isalpha(name [len - 1])))
+      {
+         more = true;
+         name [len - 1]++;
+#ifdef __WIN32__
+         // memmove required: Overlapping addresses [Neb]
+         memmove(&ext [1], &ext [0], 4);
+         ext [0] = '.';
+#endif
+         _makepath(fname, drive, dir, name, ext);
+      }
+      else
+         more = false;
+
+   }
+   while (more && (ROMFile = fopen(fname, "rb")) != NULL);
+
+
+
+   if (Memory.HeaderCount == 0)
+      S9xMessage(S9X_INFO, S9X_HEADERS_INFO, "No ROM file header found.");
+   else
+   {
+      if (Memory.HeaderCount == 1)
+         S9xMessage(S9X_INFO, S9X_HEADERS_INFO,
+                    "Found ROM file header (and ignored it).");
+      else
+         S9xMessage(S9X_INFO, S9X_HEADERS_INFO,
+                    "Found multiple ROM file headers (and ignored them).");
+   }
+
+   return TotalFileSize;
+}
+#endif
+
 /**********************************************************************************************/
 /* LoadROM()                                                                                  */
 /* This function loads a Snes-Backup image                                                    */
 /**********************************************************************************************/
 
+bool LoadROM(
 #ifdef LOAD_FROM_MEMORY_TEST
-bool LoadROM(const struct retro_game_info* game)
+      const struct retro_game_info* game
 #else
-bool LoadROM(const char* filename)
+      const char* filename
 #endif
+      )
 {
    int32_t TotalFileSize = 0;
    bool Interleaved = false;
@@ -921,130 +1170,8 @@ again:
    return (true);
 }
 
-#ifndef LOAD_FROM_MEMORY_TEST
-uint32_t FileLoader(uint8_t* buffer, const char* filename, int32_t maxsize)
-{
-
-
-   FILE* ROMFile;
-   int32_t TotalFileSize = 0;
-   int len = 0;
-
-   char dir [_MAX_DIR + 1];
-   char drive [_MAX_DRIVE + 1];
-   char name [_MAX_FNAME + 1];
-   char ext [_MAX_EXT + 1];
-   char fname [_MAX_PATH + 1];
-
-   unsigned long FileSize = 0;
-
-   _splitpath(filename, drive, dir, name, ext);
-   _makepath(fname, drive, dir, name, ext);
-
-#ifdef __WIN32__
-   // memmove required: Overlapping addresses [Neb]
-   memmove(&ext [0], &ext[1], 4);
-#endif
-
-   if ((ROMFile = fopen(fname, "rb")) == NULL)
-      return (0);
-
-   strcpy(Memory.ROMFilename, fname);
-
-   Memory.HeaderCount = 0;
-   uint8_t* ptr = buffer;
-   bool more = false;
-
-   do
-   {
-      FileSize = fread(ptr, 1, maxsize + 0x200 - (ptr - Memory.ROM), ROMFile);
-      fclose(ROMFile);
-
-      int calc_size = FileSize & ~0x1FFF; // round to the lower 0x2000
-
-      if ((FileSize - calc_size == 512 && !Settings.ForceNoHeader) ||
-            Settings.ForceHeader)
-      {
-         // memmove required: Overlapping addresses [Neb]
-         // DS2 DMA notes: Can be split into 512-byte DMA blocks [Neb]
-#ifdef DS2_DMA
-         __dcache_writeback_all();
-         {
-            unsigned int i;
-            for (i = 0; i < calc_size; i += 512)
-            {
-               ds2_DMAcopy_32Byte(2 /* channel: emu internal */, ptr + i, ptr + i + 512, 512);
-               ds2_DMA_wait(2);
-               ds2_DMA_stop(2);
-            }
-         }
-#else
-         memmove(ptr, ptr + 512, calc_size);
-#endif
-         Memory.HeaderCount++;
-         FileSize -= 512;
-      }
-
-      ptr += FileSize;
-      TotalFileSize += FileSize;
-
-
-      // check for multi file roms
-
-      if ((ptr - Memory.ROM) < (maxsize + 0x200) &&
-            (isdigit(ext [0]) && ext [1] == 0 && ext [0] < '9'))
-      {
-         more = true;
-         ext [0]++;
-#ifdef __WIN32__
-         // memmove required: Overlapping addresses [Neb]
-         memmove(&ext [1], &ext [0], 4);
-         ext [0] = '.';
-#endif
-         _makepath(fname, drive, dir, name, ext);
-      }
-      else if (ptr - Memory.ROM < maxsize + 0x200 &&
-               (((len = strlen(name)) == 7 || len == 8) &&
-                strncasecmp(name, "sf", 2) == 0 &&
-                isdigit(name [2]) && isdigit(name [3]) && isdigit(name [4]) &&
-                isdigit(name [5]) && isalpha(name [len - 1])))
-      {
-         more = true;
-         name [len - 1]++;
-#ifdef __WIN32__
-         // memmove required: Overlapping addresses [Neb]
-         memmove(&ext [1], &ext [0], 4);
-         ext [0] = '.';
-#endif
-         _makepath(fname, drive, dir, name, ext);
-      }
-      else
-         more = false;
-
-   }
-   while (more && (ROMFile = fopen(fname, "rb")) != NULL);
-
-
-
-   if (Memory.HeaderCount == 0)
-      S9xMessage(S9X_INFO, S9X_HEADERS_INFO, "No ROM file header found.");
-   else
-   {
-      if (Memory.HeaderCount == 1)
-         S9xMessage(S9X_INFO, S9X_HEADERS_INFO,
-                    "Found ROM file header (and ignored it).");
-      else
-         S9xMessage(S9X_INFO, S9X_HEADERS_INFO,
-                    "Found multiple ROM file headers (and ignored them).");
-   }
-
-   return TotalFileSize;
-
-}
-#endif
-
-//compatibility wrapper
-void S9xDeinterleaveMode2()
+/* compatibility wrapper */
+void S9xDeinterleaveMode2(void)
 {
    S9xDeinterleaveType2(true);
 }
@@ -1140,9 +1267,9 @@ void S9xDeinterleaveType2(bool reset)
 }
 
 //CRC32 for char arrays
-uint32_t caCRC32(uint8_t* array, uint32_t size, register uint32_t crc32)
+uint32_t caCRC32(uint8_t* array, uint32_t size, uint32_t crc32)
 {
-   register uint32_t i;
+   uint32_t i;
    for (i = 0; i < size; i++)
       crc32 = ((crc32 >> 8) & 0x00FFFFFF) ^ crc32Table[(crc32 ^ array[i]) & 0xFF];
    return ~crc32;
@@ -1488,86 +1615,6 @@ void InitROM(bool Interleaved)
                              Settings.ForceInterleaved = Settings.ForceNoHeader =
                                       Settings.ForceNotInterleaved =
                                          Settings.ForceInterleaved2 = false;
-}
-
-bool LoadSRAM(const char* filename)
-{
-   int size = Memory.SRAMSize ?
-              (1 << (Memory.SRAMSize + 3)) * 128 : 0;
-
-   memset(Memory.SRAM, SNESGameFixes.SRAMInitialValue, 0x20000);
-
-   if (size > 0x20000)
-      size = 0x20000;
-
-   if (size)
-   {
-      FILE* file;
-      if ((file = fopen(filename, "rb")))
-      {
-         int len = fread((unsigned char*) Memory.SRAM, 1, 0x20000, file);
-         fclose(file);
-         if (len - size == 512)
-         {
-            // S-RAM file has a header - remove it
-            // memmove required: Overlapping addresses [Neb]
-            memmove(Memory.SRAM, Memory.SRAM + 512, size);
-         }
-         if (len == size + SRTC_SRAM_PAD)
-         {
-            S9xSRTCPostLoadState();
-            S9xResetSRTC();
-            rtc.index = -1;
-            rtc.mode = MODE_READ;
-         }
-         else
-            S9xHardResetSRTC();
-
-         if (Settings.SPC7110RTC)
-            S9xLoadSPC7110RTC(&rtc_f9);
-
-         return (true);
-      }
-      S9xHardResetSRTC();
-      return (false);
-   }
-
-   return (true);
-}
-
-bool SaveSRAM(const char* filename)
-{
-   if (Settings.SuperFX && Memory.ROMType < 0x15)
-      return true;
-   if (Settings.SA1 && Memory.ROMType == 0x34)
-      return true;
-
-   int size = Memory.SRAMSize ?
-              (1 << (Memory.SRAMSize + 3)) * 128 : 0;
-   if (Settings.SRTC)
-   {
-      size += SRTC_SRAM_PAD;
-      S9xSRTCPreSaveState();
-   }
-
-   if (size > 0x20000)
-      size = 0x20000;
-
-   if (size && *Memory.ROMFilename)
-   {
-
-      FILE* file = fopen(filename, "w");
-      if (file)
-      {
-         fwrite((unsigned char*) Memory.SRAM, size, 1, file);
-         fclose(file);
-         if (Settings.SPC7110RTC)
-            S9xSaveSPC7110RTC(&rtc_f9);
-
-         return (true);
-      }
-   }
-   return (false);
 }
 
 void FixROMSpeed()
@@ -4103,121 +4150,7 @@ void ApplyROMFixes()
    //BNE
 }
 
-// Read variable size MSB int from a file
-static long ReadInt(FILE* f, unsigned nbytes)
-{
-   long v = 0;
-   while (nbytes--)
-   {
-      int c = fgetc(f);
-      if (c == EOF)
-         return -1;
-      v = (v << 8) | (c & 0xFF);
-   }
-   return (v);
-}
 
-#define IPS_EOF 0x00454F46l
-
-void CheckForIPSPatch(const char* rom_filename, bool header,
-                      int32_t* rom_size)
-{
-   char  dir [_MAX_DIR + 1];
-   char  drive [_MAX_DRIVE + 1];
-   char  name [_MAX_FNAME + 1];
-   char  ext [_MAX_EXT + 1];
-   char  fname [_MAX_PATH + 1];
-   FILE*  patch_file  = NULL;
-   long  offset = header ? 512 : 0;
-
-   _splitpath(rom_filename, drive, dir, name, ext);
-   _makepath(fname, drive, dir, name, "ips");
-
-   if (!(patch_file = fopen(fname, "rb")))
-   {
-      if (!(patch_file = fopen(S9xGetFilename("ips"), "rb")))
-         return;
-   }
-
-   if (fread((unsigned char*)fname, 1, 5, patch_file) != 5 ||
-         strncmp(fname, "PATCH", 5) != 0)
-   {
-      fclose(patch_file);
-      return;
-   }
-
-   int32_t ofs;
-
-   for (;;)
-   {
-      long len;
-      long rlen;
-      int  rchar;
-
-      ofs = ReadInt(patch_file, 3);
-      if (ofs == -1)
-         goto err_eof;
-
-      if (ofs == IPS_EOF)
-         break;
-
-      ofs -= offset;
-
-      len = ReadInt(patch_file, 2);
-      if (len == -1)
-         goto err_eof;
-
-      /* Apply patch block */
-      if (len)
-      {
-         if (ofs + len > MAX_ROM_SIZE)
-            goto err_eof;
-
-         while (len--)
-         {
-            rchar = fgetc(patch_file);
-            if (rchar == EOF)
-               goto err_eof;
-            Memory.ROM [ofs++] = (uint8_t) rchar;
-         }
-         if (ofs > *rom_size)
-            *rom_size = ofs;
-      }
-      else
-      {
-         rlen = ReadInt(patch_file, 2);
-         if (rlen == -1)
-            goto err_eof;
-
-         rchar = fgetc(patch_file);
-         if (rchar == EOF)
-            goto err_eof;
-
-         if (ofs + rlen > MAX_ROM_SIZE)
-            goto err_eof;
-
-         while (rlen--)
-            Memory.ROM [ofs++] = (uint8_t) rchar;
-
-         if (ofs > *rom_size)
-            *rom_size = ofs;
-      }
-   }
-
-   // Check if ROM image needs to be truncated
-   ofs = ReadInt(patch_file, 3);
-   if (ofs != -1 && ofs - offset < *rom_size)
-   {
-      // Need to truncate ROM image
-      *rom_size = ofs - offset;
-   }
-   fclose(patch_file);
-   return;
-
-err_eof:
-   if (patch_file)
-      fclose(patch_file);
-}
 
 int is_bsx(unsigned char* p)
 {
@@ -4296,15 +4229,6 @@ int bs_name(unsigned char* p)
       return 0;
 notBsName:
    return -1;
-}
-int check_char(unsigned c)
-{
-   if ((c & 0x80) == 0)
-      return 0;
-   if ((c - 0x20) & 0x40)
-      return 1;
-   else
-      return 0;
 }
 
 void ParseSNESHeader(uint8_t* RomHeader)

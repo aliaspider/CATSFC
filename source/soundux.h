@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -118,10 +120,6 @@ enum { MODE_NONE = SOUND_SILENT, MODE_ADSR, MODE_RELEASE = SOUND_RELEASE,
 
 #define SOUND_BUFS      4
 
-#ifdef __sgi
-#  include <audio.h>
-#endif /* __sgi */
-
 typedef struct
 {
    int sound_fd;
@@ -129,12 +127,6 @@ typedef struct
    int playback_rate;
    int buffer_size;
    bool encoded;
-#ifdef __sun
-   int last_eof;
-#endif
-#ifdef __sgi
-   ALport al_port;
-#endif /* __sgi */
    int32_t  samples_mixed_so_far;
    int32_t  play_position;
    uint32_t err_counter;

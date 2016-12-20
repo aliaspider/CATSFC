@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -633,10 +635,12 @@ int FxEmulate(uint32_t nInstructions)
    /* Execute GSU session */
    CF(IRQ);
 
+   /*
    if (GSU.bBreakPoint)
       vCount = fx_ppfFunctionTable[FX_FUNCTION_RUN_TO_BREAKPOINT](nInstructions);
    else
-      vCount = fx_ppfFunctionTable[FX_FUNCTION_RUN](nInstructions);
+   */
+   vCount = fx_ppfFunctionTable[FX_FUNCTION_RUN](nInstructions);
 
    /* Store GSU registers */
    fx_writeRegisterSpace();
@@ -649,6 +653,7 @@ int FxEmulate(uint32_t nInstructions)
 }
 
 /* Breakpoints */
+/*
 void FxBreakPointSet(uint32_t vAddress)
 {
    GSU.bBreakPoint = true;
@@ -657,7 +662,7 @@ void FxBreakPointSet(uint32_t vAddress)
 void FxBreakPointClear()
 {
    GSU.bBreakPoint = false;
-}
+}*/
 
 /* Step by step execution */
 int FxStepOver(uint32_t nInstructions)

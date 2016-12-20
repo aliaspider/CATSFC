@@ -1,3 +1,93 @@
+/*******************************************************************************
+  Snes9x - Portable Super Nintendo Entertainment System (TM) emulator.
+
+  (c) Copyright 1996 - 2002 Gary Henderson (gary.henderson@ntlworld.com) and
+                            Jerremy Koot (jkoot@snes9x.com)
+
+  (c) Copyright 2001 - 2004 John Weidman (jweidman@slip.net)
+
+  (c) Copyright 2002 - 2004 Brad Jorsch (anomie@users.sourceforge.net),
+                            funkyass (funkyass@spam.shaw.ca),
+                            Joel Yliluoma (http://iki.fi/bisqwit/)
+                            Kris Bleakley (codeviolation@hotmail.com),
+                            Matthew Kendora,
+                            Nach (n-a-c-h@users.sourceforge.net),
+                            Peter Bortas (peter@bortas.org) and
+                            zones (kasumitokoduck@yahoo.com)
+
+  C4 x86 assembler and some C emulation code
+  (c) Copyright 2000 - 2003 zsKnight (zsknight@zsnes.com),
+                            _Demo_ (_demo_@zsnes.com), and Nach
+
+  C4 C++ code
+  (c) Copyright 2003 Brad Jorsch
+
+  DSP-1 emulator code
+  (c) Copyright 1998 - 2004 Ivar (ivar@snes9x.com), _Demo_, Gary Henderson,
+                            John Weidman, neviksti (neviksti@hotmail.com),
+                            Kris Bleakley, Andreas Naive
+
+  DSP-2 emulator code
+  (c) Copyright 2003 Kris Bleakley, John Weidman, neviksti, Matthew Kendora, and
+                     Lord Nightmare (lord_nightmare@users.sourceforge.net
+
+  OBC1 emulator code
+  (c) Copyright 2001 - 2004 zsKnight, pagefault (pagefault@zsnes.com) and
+                            Kris Bleakley
+  Ported from x86 assembler to C by sanmaiwashi
+
+  SPC7110 and RTC C++ emulator code
+  (c) Copyright 2002 Matthew Kendora with research by
+                     zsKnight, John Weidman, and Dark Force
+
+  S-DD1 C emulator code
+  (c) Copyright 2003 Brad Jorsch with research by
+                     Andreas Naive and John Weidman
+
+  S-RTC C emulator code
+  (c) Copyright 2001 John Weidman
+
+  ST010 C++ emulator code
+  (c) Copyright 2003 Feather, Kris Bleakley, John Weidman and Matthew Kendora
+
+  Super FX x86 assembler emulator code
+  (c) Copyright 1998 - 2003 zsKnight, _Demo_, and pagefault
+
+  Super FX C emulator code
+  (c) Copyright 1997 - 1999 Ivar, Gary Henderson and John Weidman
+
+
+  SH assembler code partly based on x86 assembler code
+  (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
+
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
+
+  Specific ports contains the works of other authors. See headers in
+  individual files.
+
+  Snes9x homepage: http://www.snes9x.com
+
+  Permission to use, copy, modify and distribute Snes9x in both binary and
+  source form, for non-commercial purposes, is hereby granted without fee,
+  providing that this license information and copyright notice appear with
+  all copies and any derived work.
+
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event shall the authors be held liable for any damages
+  arising from the use of this software.
+
+  Snes9x is freeware for PERSONAL USE only. Commercial users should
+  seek permission of the copyright holders first. Commercial use includes
+  charging money for Snes9x or software derived from Snes9x.
+
+  The copyright holders request that bug fixes and improvements to the code
+  should be forwarded to them so everyone can benefit from the modifications
+  in future versions.
+
+  Super NES and Super Nintendo Entertainment System are trademarks of
+  Nintendo Co., Limited and its subsidiary companies.
+*******************************************************************************/
 
 #include <stdio.h>
 
@@ -175,15 +265,6 @@ void S9xInitDisplay(void)
    GFX.Delta = (GFX.SubScreen - GFX.Screen) >> 1;
 }
 
-const char* S9xBasename(const char* f)
-{
-   const char* p;
-   if ((p = strrchr(f, '/')) != NULL || (p = strrchr(f, '\\')) != NULL)
-      return (p + 1);
-
-   return (f);
-}
-
 bool S9xInitUpdate()
 {
    //   IPPU.RenderThisFrame = 0;
@@ -267,7 +348,6 @@ const char* S9xGetFilename(const char* ex)
 
 void GetBaseName(const char* ex)
 {
-   static char filename [PATH_MAX + 1];
    char drive [_MAX_DRIVE + 1];
    char dir [_MAX_DIR + 1];
    char fname [_MAX_FNAME + 1];
@@ -312,17 +392,12 @@ void init_sfc_setting(void)
 
 }
 
-void S9xAutoSaveSRAM()
-{
-   SaveSRAM(S9xGetFilename("srm"));
-}
-
 #ifdef USE_BLARGG_APU
 static void S9xAudioCallback()
 {
    size_t avail;
    /* Just pick a big buffer. We won't use it all. */
-   static int16_t audio_buf[0x10000];
+   static int16_t audio_buf[0x20000];
 
    S9xFinalizeSamples();
    avail = S9xGetSampleCount();
@@ -357,12 +432,18 @@ void retro_init(void)
    S9xInitDisplay();
    S9xInitGFX();
 #ifdef USE_BLARGG_APU
-   S9xInitSound(16, 0);
+   //very slow devices will still pop
+   
+   //this needs to be applied to all snes9x cores
+   
+   //increasing the buffer size does not cause extra lag(tested with 1000ms buffer)
+   //bool8 S9xInitSound (int buffer_ms, int lag_ms)
+   
+   S9xInitSound(1000, 0);//just give it a 1 second buffer
+   
    S9xSetSamplesAvailableCallback(S9xAudioCallback);
 #else
-   S9xInitSound(Settings.SoundPlaybackRate,
-                true,
-                Settings.SoundBufferSize);
+   S9xInitSound();
 #endif
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 
@@ -373,10 +454,6 @@ void retro_deinit(void)
 
    if (Settings.SPC7110)
       (*CleanUp7110)();
-   if(retro_save_directory[0] == '\0')
-      SaveSRAM(S9xGetFilename("srm"));
-   else
-      SaveSRAM(retro_save_directory);
 
    S9xDeinitGFX();
    S9xDeinitDisplay();
@@ -627,18 +704,21 @@ unsigned retro_get_region(void)
 void retro_get_system_info(struct retro_system_info* info)
 {
 #ifdef LOAD_FROM_MEMORY_TEST
-   info->need_fullpath = false;
+   info->need_fullpath    = false;
 #else
-   info->need_fullpath = true;
+   info->need_fullpath    = true;
 #endif
    info->valid_extensions = "smc|fig|sfc|gd3|gd7|dx2|bsx|swc";
-   info->library_version = "v1.36";
-#ifdef USE_BLARGG_APU
-   info->library_name = "CATSFC Plus(SNES9x)";
-#else
-   info->library_name = "CATSFC(SNES9x)";
+#ifndef GIT_VERSION
+#define GIT_VERSION ""
 #endif
-   info->block_extract = false;
+   info->library_version  = "v1.36" GIT_VERSION;
+#ifdef USE_BLARGG_APU
+   info->library_name     = "Snes9x 2005 Plus";
+#else
+   info->library_name     = "Snes9x 2005";
+#endif
+   info->block_extract    = false;
 }
 
 void retro_get_system_av_info(struct retro_system_av_info* info)
@@ -949,21 +1029,6 @@ bool retro_load_game(const struct retro_game_info* game)
    Settings.FrameTime = (Settings.PAL ? Settings.FrameTimePAL :
                          Settings.FrameTimeNTSC);
 
-
-   const char *dir = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
-   {
-      GetBaseName("");
-      snprintf(retro_save_directory,sizeof(retro_save_directory),"%s%c%s.srm",dir,slash,retro_base_name);
-      log_cb(RETRO_LOG_INFO,
-             "SAVE LOCATION: %s\n", retro_save_directory);
-   }
-
-   if(retro_save_directory[0] != '\0')
-      LoadSRAM(retro_save_directory);
-   else
-      LoadSRAM(S9xGetFilename("srm"));
-
    struct retro_system_av_info av_info;
    retro_get_system_av_info(&av_info);
 
@@ -986,12 +1051,63 @@ void retro_unload_game(void)
 
 }
 
-void* retro_get_memory_data(unsigned id)
+void* retro_get_memory_data(unsigned type)
 {
-   return NULL;
+   uint8_t* data = NULL;
+
+   switch(type)
+   {
+      case RETRO_MEMORY_SAVE_RAM:
+         data = Memory.SRAM;
+         break;
+      case RETRO_MEMORY_RTC:
+#if 0
+         data = RTCData.reg;
+#endif
+         break;
+      case RETRO_MEMORY_SYSTEM_RAM:
+         data = Memory.RAM;
+         break;
+      case RETRO_MEMORY_VIDEO_RAM:
+         data = Memory.VRAM;
+         break;
+      //case RETRO_MEMORY_ROM:
+      //   data = Memory.ROM;
+      //   break;
+      default:
+         break;
+   }
+
+   return data;
 }
 
-size_t retro_get_memory_size(unsigned id)
+size_t retro_get_memory_size(unsigned type)
 {
-   return 0;
+   unsigned size;
+
+   switch(type)
+   {
+      case RETRO_MEMORY_SAVE_RAM:
+         size = (unsigned) (Memory.SRAMSize ? (1 << (Memory.SRAMSize + 3)) * 128 : 0);
+         if (size > 0x20000)
+            size = 0x20000;
+         break;
+      case RETRO_MEMORY_RTC:
+         size = (Settings.SRTC || Settings.SPC7110RTC)?20:0;
+         break;
+      case RETRO_MEMORY_SYSTEM_RAM:
+         size = 128 * 1024;
+         break;
+      case RETRO_MEMORY_VIDEO_RAM:
+         size = 64 * 1024;
+         break;
+      //case RETRO_MEMORY_ROM:
+      //   data = Memory.CalculatedSize;
+      //   break;
+      default:
+         size = 0;
+         break;
+   }
+
+   return size;
 }

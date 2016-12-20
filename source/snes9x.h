@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -88,8 +90,6 @@
 *******************************************************************************/
 #ifndef _SNES9X_H_
 #define _SNES9X_H_
-
-#define VERSION "1.43-dev"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -217,9 +217,6 @@ typedef struct
    bool  TriedInterleavedMode2;
    uint32_t NMICycleCount;
    uint32_t IRQCycleCount;
-#ifdef DEBUG_MAXCOUNT
-   unsigned long GlobalLoopCount;
-#endif
 } SCPUState;
 
 #define HBLANK_START_EVENT 0
@@ -354,9 +351,6 @@ typedef struct
    int    AIDOShmId;
    bool  NoPatch;
    bool  ForceInterleaveGD24;
-#ifdef DEBUG_MAXCOUNT
-   unsigned int MaxCount;
-#endif
 } SSettings;
 
 typedef struct

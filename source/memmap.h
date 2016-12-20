@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -141,11 +143,8 @@
 bool LoadROM(const struct retro_game_info* game);
 #else
 bool LoadROM(const char*);
-uint32_t FileLoader(uint8_t* buffer, const char* filename, int32_t maxsize);
 #endif
 void  InitROM(bool);
-bool LoadSRAM(const char*);
-bool SaveSRAM(const char*);
 bool S9xInitMemory();
 void  S9xDeinitMemory();
 void  FreeSDD1Data();
@@ -154,7 +153,6 @@ void WriteProtectROM();
 void FixROMSpeed();
 void MapRAM();
 void MapExtraRAM();
-char* Safe(const char*);
 
 void BSLoROMMap();
 void JumboLoROMMap(bool);
@@ -172,15 +170,7 @@ void BSHiROMMap();
 void SPC7110HiROMMap();
 void SPC7110Sram(uint8_t);
 void SetaDSPMap();
-bool AllASCII(uint8_t* b, int size);
-int  ScoreHiROM(bool skip_header, int32_t offset);
-int  ScoreLoROM(bool skip_header, int32_t offset);
-#if 0
-void SufamiTurboAltROMMap();
-#endif
 void ApplyROMFixes();
-void CheckForIPSPatch(const char* rom_filename, bool header,
-                      int32_t* rom_size);
 
 const char* TVStandard();
 const char* Speed();
@@ -252,13 +242,6 @@ void ResetSpeedMap();
 
 extern CMemory Memory;
 void S9xDeinterleaveMode2();
-bool LoadZip(const char* zipname,
-              int32_t* TotalFileSize,
-              int32_t* headers,
-              uint8_t* buffer);
-
-
-void S9xAutoSaveSRAM();
 
 #ifdef NO_INLINE_SET_GET
 uint8_t S9xGetByte(uint32_t Address);

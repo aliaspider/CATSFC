@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -155,8 +157,6 @@ void S9xMainLoop_SA1_SFX(void)
             }
          }
 
-         CHECK_SOUND();
-
          if (CPU.Flags & IRQ_PENDING_FLAG)
          {
             if (CPU.IRQCycleCount == 0)
@@ -241,8 +241,6 @@ void S9xMainLoop_SA1_NoSFX(void)
             }
          }
 
-         CHECK_SOUND();
-
          if (CPU.Flags & IRQ_PENDING_FLAG)
          {
             if (CPU.IRQCycleCount == 0)
@@ -317,8 +315,6 @@ void S9xMainLoop_NoSA1_SFX(void)
                S9xOpcode_NMI();
             }
          }
-
-         CHECK_SOUND();
 
          if (CPU.Flags & IRQ_PENDING_FLAG)
          {
@@ -401,8 +397,6 @@ void S9xMainLoop_NoSA1_NoSFX(void)
                S9xOpcode_NMI();
             }
          }
-
-         CHECK_SOUND();
 
          if (CPU.Flags & IRQ_PENDING_FLAG)
          {
@@ -500,10 +494,8 @@ void S9xDoHBlankProcessing_SFX()
       S9xSuperFXExec();
 
 #ifndef USE_BLARGG_APU
-#ifndef STORM
       if (Settings.SoundSync)
          S9xGenerateSound();
-#endif
 
       CPU.Cycles -= Settings.H_Max;
       if (IAPU.APUExecuting)
@@ -683,10 +675,8 @@ void S9xDoHBlankProcessing_NoSFX()
    case HBLANK_END_EVENT:
 
 #ifndef USE_BLARGG_APU
-#ifndef STORM
       if (Settings.SoundSync)
          S9xGenerateSound();
-#endif
 
       CPU.Cycles -= Settings.H_Max;
       if (IAPU.APUExecuting)

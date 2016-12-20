@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -92,22 +94,7 @@
 
 #include <limits.h>
 
-#ifndef STORM
-//#include <memory.h>
 #include <string.h>
-#else
-#include <strings.h>
-#include <clib/powerpc_protos.h>
-#endif
-
-#ifndef ACCEPT_SIZE_T
-#ifdef __WIN32__
-#define ACCEPT_SIZE_T int
-#else
-#define ACCEPT_SIZE_T unsigned int
-#endif
-#endif
-
 #include <sys/types.h>
 
 /* #define PIXEL_FORMAT RGB565 */
@@ -118,28 +105,6 @@
 #endif
 // The above is used to disable the 16-bit graphics mode checks sprinkled
 // throughout the code, if the pixel format is always 16-bit.
-
-#if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-
-#include "zlib.h"
-#define ZLIB
-#define EXECUTE_SUPERFX_PER_LINE
-#define SOUND
-#define VAR_CYCLES
-#define CPU_SHUTDOWN
-#define SPC700_SHUTDOWN
-#define PIXEL_FORMAT RGB555
-#define CHECK_SOUND()
-#define M_PI 3.14159265359
-#undef  _MAX_PATH
-
-#undef DEBUGGER /* Apple Universal Headers sometimes #define DEBUGGER */
-
-int    strncasecmp(const char* s1, const char* s2, unsigned n);
-int    strcasecmp(const char* s1, const char* s2);
-
-#endif /* TARGET_OS_MAC */
-
 
 #include "pixform.h"
 
@@ -164,36 +129,10 @@ void _splitpath(const char* path, char* drive, char* dir, char* fname,
 #define strncasecmp strnicmp
 #endif
 
-void S9xGenerateSound();
+void S9xGenerateSound(void);
 
-#ifdef STORM
-int soundsignal;
-void MixSound(void);
-/* Yes, CHECK_SOUND is getting defined correctly! */
-#define CHECK_SOUND if (Settings.APUEnabled) if(SetSignalPPC(0L, soundsignal) & soundsignal) MixSound
-#else
-#define CHECK_SOUND()
-#endif
-
-#ifdef __DJGPP
 #define SLASH_STR "/"
 #define SLASH_CHAR '/'
-#else
-#define SLASH_STR "/"
-#define SLASH_CHAR '/'
-#endif
-
-/* Taken care of in signal.h on Linux.
- * #ifdef __linux
- * typedef void (*SignalHandler)(int);
- * #define SIG_PF SignalHandler
- * #endif
- */
-
-/* If including signal.h, do it before snes9.h and port.h to avoid clashes. */
-#ifndef SIG_PF
-#define SIG_PF void(*)(int)
-#endif
 
 #if defined(__i386__) || defined(__i486__) || defined(__i586__) || \
     defined(__WIN32__) || defined(__alpha__)
@@ -205,25 +144,6 @@ void MixSound(void);
 #else
 //#define MSB_FIRST
 //#define FAST_LSB_WORD_ACCESS
-#endif
-
-#ifdef __sun
-#define TITLE "Snes9X: Solaris"
-#endif
-
-#ifdef __linux
-#define TITLE "Snes9X: Linux"
-#endif
-
-#ifndef TITLE
-#define TITLE "Snes9x"
-#endif
-
-#ifdef STORM
-#define STATIC
-#define strncasecmp strnicmp
-#else
-#define STATIC static
 #endif
 
 #include <libretro.h>

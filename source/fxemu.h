@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -110,12 +112,11 @@ extern int FxEmulate(uint32_t nInstructions);
 
 /* Write access to the cache */
 extern void FxCacheWriteAccess(uint16_t vAddress);
-extern void
-FxFlushCache();   /* Callled when the G flag in SFR is set to zero */
+extern void FxFlushCache();   /* Callled when the G flag in SFR is set to zero */
 
 /* Breakpoint */
-extern void FxBreakPointSet(uint32_t vAddress);
-extern void FxBreakPointClear();
+//extern void FxBreakPointSet(uint32_t vAddress);
+//extern void FxBreakPointClear();
 
 /* Step by step execution */
 extern int FxStepOver(uint32_t nInstructions);

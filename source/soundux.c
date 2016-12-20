@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -87,11 +89,6 @@
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
 #ifndef USE_BLARGG_APU
-
-#ifdef __DJGPP__
-#include <allegro.h>
-#undef true
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -181,7 +178,7 @@ void S9xSetEightBitConsoleSound(bool Enabled)
    }
 }
 
-STATIC inline uint8_t* S9xGetSampleAddress(int sample_number)
+static inline uint8_t* S9xGetSampleAddress(int sample_number)
 {
    uint32_t addr = (((APU.DSP[APU_DIR] << 8) + (sample_number << 2)) & 0xffff);
    return (IAPU.RAM + addr);
@@ -196,17 +193,11 @@ void S9xAPUSetEndOfSample(int i, Channel* ch)
    APU.DSP [APU_KOFF] &= ~(1 << i);
    APU.KeyedChannels &= ~(1 << i);
 }
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xAPUSetEndOfSample)
-#endif
 
 void S9xAPUSetEndX(int ch)
 {
    APU.DSP [APU_ENDX] |= 1 << ch;
 }
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xAPUSetEndX)
-#endif
 
 void S9xSetEnvRate(Channel* ch, uint32_t rate, int direction, int target)
 {
@@ -244,9 +235,6 @@ void S9xSetEnvRate(Channel* ch, uint32_t rate, int direction, int target)
    }
 }
 
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xSetEnvRate);
-#endif
 
 void S9xSetEnvelopeRate(int channel, uint32_t rate, int direction,
                         int target)
@@ -254,9 +242,6 @@ void S9xSetEnvelopeRate(int channel, uint32_t rate, int direction,
    S9xSetEnvRate(&SoundData.channels [channel], rate, direction, target);
 }
 
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xSetEnvelopeRate);
-#endif
 
 void S9xSetSoundVolume(int channel, int16_t volume_left, int16_t volume_right)
 {
@@ -1074,22 +1059,11 @@ stereo_exit:
    }
 }
 
-#ifdef __DJGPP
-END_OF_FUNCTION(MixStereo);
-#endif
-
-#ifdef __sun
-extern uint8_t int2ulaw(int);
-#endif
-
 // For backwards compatibility with older port specific code
 void S9xMixSamplesO(uint8_t* buffer, int sample_count, int byte_offset)
 {
    S9xMixSamples(buffer + byte_offset, sample_count);
 }
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xMixSamplesO);
-#endif
 
 void S9xMixSamples(uint8_t* buffer, int sample_count)
 {
@@ -1184,10 +1158,6 @@ void S9xMixSamples(uint8_t* buffer, int sample_count)
 
 }
 
-#ifdef __DJGPP
-END_OF_FUNCTION(S9xMixSamples);
-#endif
-
 void S9xResetSound(bool full)
 {
    int i;
@@ -1268,7 +1238,7 @@ void S9xSetPlaybackRate(uint32_t playback_rate)
       S9xSetSoundFrequency(i, SoundData.channels [i].hertz);
 }
 
-bool S9xInitSound(int mode, bool stereo, int buffer_size)
+bool S9xInitSound()
 {
    so.sound_fd = -1;
    so.sound_switch = 255;
@@ -1276,9 +1246,6 @@ bool S9xInitSound(int mode, bool stereo, int buffer_size)
    so.playback_rate = 0;
    so.buffer_size = 0;
    so.encoded = false;
-
-   if (!(mode & 7))
-      return (1);
 
    return (1);
 }

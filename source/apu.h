@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -134,14 +136,14 @@ typedef struct
 SAPU APU;
 SIAPU IAPU;
 
-STATIC inline void S9xAPUUnpackStatus()
+static inline void S9xAPUUnpackStatus(void)
 {
    IAPU._Zero = ((IAPU.Registers.P & Zero) == 0) | (IAPU.Registers.P & Negative);
    IAPU._Carry = (IAPU.Registers.P & Carry);
    IAPU._Overflow = (IAPU.Registers.P & Overflow) >> 6;
 }
 
-STATIC inline void S9xAPUPackStatus()
+static inline void S9xAPUPackStatus(void)
 {
    IAPU.Registers.P &= ~(Zero | Negative | Carry | Overflow);
    IAPU.Registers.P |= IAPU._Carry | ((IAPU._Zero == 0) << 1) |
@@ -158,7 +160,7 @@ void S9xSetAPUControl(uint8_t byte);
 void S9xSetAPUDSP(uint8_t byte);
 uint8_t S9xGetAPUDSP();
 void S9xSetAPUTimer(uint16_t Address, uint8_t byte);
-bool S9xInitSound(int quality, bool stereo, int buffer_size);
+bool S9xInitSound();
 void S9xOpenCloseSoundTracingFile(bool);
 void S9xPrintAPUState();
 extern uint16_t S9xAPUCycles [256];   // Scaled cycle lengths

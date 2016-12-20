@@ -35,9 +35,13 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 endif
 
 ifeq ($(USE_BLARGG_APU), 1)
-TARGET_NAME := catsfc_plus
+TARGET_NAME := snes9x2005_plus
 else
-TARGET_NAME := catsfc
+TARGET_NAME := snes9x2005
+endif
+GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+	CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
 
 DEFS        :=
@@ -49,17 +53,13 @@ ifeq ($(platform), unix)
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
 
    CFLAGS += -fno-builtin \
-            -fno-exceptions -ffunction-sections \
-             -fomit-frame-pointer -fgcse-sm -fgcse-las -fgcse-after-reload \
-             -fweb -fpeel-loops
+            -fno-exceptions -ffunction-sections
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC -nostdlib
    SHARED := -shared -Wl,--version-script=link.T
    CFLAGS += -fno-builtin \
-            -fno-exceptions -ffunction-sections \
-             -fomit-frame-pointer -fgcse-sm -fgcse-las -fgcse-after-reload \
-             -fweb -fpeel-loops
+            -fno-exceptions -ffunction-sections
 	LIBM   :=
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
@@ -113,7 +113,7 @@ include $(THEOS)/makefiles/common.mk
 LIBRARY_NAME = $(TARGET_NAME)_libretro_ios
 
 else ifeq ($(platform), qnx)
-   TARGET := $(TARGET_NAME)_libretro_qnx.so
+   TARGET := $(TARGET_NAME)_libretro_$(platform).so
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
 	CC = qcc -Vgcc_ntoarmv7le
@@ -121,7 +121,7 @@ else ifeq ($(platform), qnx)
 
 # PS3
 else ifeq ($(platform), ps3)
-   TARGET := $(TARGET_NAME)_libretro_ps3.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
@@ -141,7 +141,7 @@ else ifeq ($(platform), sncps3)
 
 # PSP1
 else ifeq ($(platform), psp1)
-   TARGET := $(TARGET_NAME)_libretro_psp1.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = psp-gcc$(EXE_EXT)
 	CXX = psp-g++$(EXE_EXT)
 	AR = psp-ar$(EXE_EXT)
@@ -149,15 +149,13 @@ else ifeq ($(platform), psp1)
 	LOAD_FROM_MEMORY_TEST = 0
 	FLAGS += -G0 
    CFLAGS += -march=allegrex -mno-abicalls -fno-pic -fno-builtin \
-		-fno-exceptions -ffunction-sections -mno-long-calls \
-		-fomit-frame-pointer -fgcse-sm -fgcse-las -fgcse-after-reload \
-		-fweb -fpeel-loops
+				 -fno-exceptions -ffunction-sections
 	DEFS   +=  -DPSP -D_PSP_FW_VERSION=371
    STATIC_LINKING := 1
 
 # Vita
 else ifeq ($(platform), vita)
-   TARGET := $(TARGET_NAME)_libretro_vita.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
 	CXX = arm-vita-eabi-g++$(EXE_EXT)
 	AR = arm-vita-eabi-ar$(EXE_EXT)
@@ -168,7 +166,7 @@ else ifeq ($(platform), vita)
 
 # CTR (3DS)
 else ifeq ($(platform), ctr)
-   TARGET := $(TARGET_NAME)_libretro_ctr.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
    CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
    AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
@@ -182,7 +180,7 @@ else ifeq ($(platform), ctr)
 
 # Nintendo Game Cube
 else ifeq ($(platform), ngc)
-	TARGET := $(TARGET_NAME)_libretro_ngc.a
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
    CFLAGS += -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST
@@ -190,10 +188,22 @@ else ifeq ($(platform), ngc)
 
 # Nintendo Wii
 else ifeq ($(platform), wii)
-   TARGET := $(TARGET_NAME)_libretro_wii.a
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
    CFLAGS += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST
+   STATIC_LINKING = 1
+
+# Nintendo WiiU
+else ifeq ($(platform), wiiu)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+   CFLAGS += -DGEKKO -DWIIU -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -DMSB_FIRST
+   STATIC_LINKING = 1
+
+else ifeq ($(platform), emscripten)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).bc
    STATIC_LINKING = 1
 
 # GCW0

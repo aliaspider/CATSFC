@@ -60,6 +60,8 @@
   SH assembler code partly based on x86 assembler code
   (c) Copyright 2002 - 2004 Marcus Comstedt (marcus@mc.pp.se)
 
+  (c) Copyright 2014 - 2016 Daniel De Matteis. (UNDER NO CIRCUMSTANCE 
+  WILL COMMERCIAL RIGHTS EVER BE APPROPRIATED TO ANY PARTY)
 
   Specific ports contains the works of other authors. See headers in
   individual files.
@@ -398,7 +400,6 @@ void S9xDoDMA(uint8_t Channel)
                Work = *(base + p);
                REGISTER_2104(Work);
                p += inc;
-               CHECK_SOUND();
             }
             while (--count > 0);
             break;
@@ -413,7 +414,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2118_linear(Work);
                   p += inc;
-                  CHECK_SOUND();
                }
                while (--count > 0);
             }
@@ -424,7 +424,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2118_tile(Work);
                   p += inc;
-                  CHECK_SOUND();
                }
                while (--count > 0);
             }
@@ -440,7 +439,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2119_linear(Work);
                   p += inc;
-                  CHECK_SOUND();
                }
                while (--count > 0);
             }
@@ -451,7 +449,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2119_tile(Work);
                   p += inc;
-                  CHECK_SOUND();
                }
                while (--count > 0);
             }
@@ -462,7 +459,6 @@ void S9xDoDMA(uint8_t Channel)
                Work = *(base + p);
                REGISTER_2122(Work);
                p += inc;
-               CHECK_SOUND();
             }
             while (--count > 0);
             break;
@@ -472,7 +468,6 @@ void S9xDoDMA(uint8_t Channel)
                Work = *(base + p);
                REGISTER_2180(Work);
                p += inc;
-               CHECK_SOUND();
             }
             while (--count > 0);
             break;
@@ -482,7 +477,6 @@ void S9xDoDMA(uint8_t Channel)
                Work = *(base + p);
                S9xSetPPU(Work, 0x2100 + d->BAddress);
                p += inc;
-               CHECK_SOUND();
             }
             while (--count > 0);
             break;
@@ -507,7 +501,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2119_linear(Work);
                   p += inc;
-                  CHECK_SOUND();
                   count -= 2;
                }
                if (count == 1)
@@ -528,7 +521,6 @@ void S9xDoDMA(uint8_t Channel)
                   Work = *(base + p);
                   REGISTER_2119_tile(Work);
                   p += inc;
-                  CHECK_SOUND();
                   count -= 2;
                }
                if (count == 1)
@@ -551,7 +543,6 @@ void S9xDoDMA(uint8_t Channel)
                Work = *(base + p);
                S9xSetPPU(Work, 0x2101 + d->BAddress);
                p += inc;
-               CHECK_SOUND();
                count -= 2;
             }
             if (count == 1)
@@ -587,7 +578,6 @@ void S9xDoDMA(uint8_t Channel)
             Work = *(base + p);
             S9xSetPPU(Work, 0x2101 + d->BAddress);
             p += inc;
-            CHECK_SOUND();
             count -= 4;
          }
          while (count > 0);
@@ -617,7 +607,6 @@ void S9xDoDMA(uint8_t Channel)
             Work = *(base + p);
             S9xSetPPU(Work, 0x2103 + d->BAddress);
             p += inc;
-            CHECK_SOUND();
             count -= 4;
          }
          while (count > 0);
@@ -712,7 +701,6 @@ void S9xDoDMA(uint8_t Channel)
             count = 0;
             break;
          }
-         CHECK_SOUND();
       }
       while (count);
    }
