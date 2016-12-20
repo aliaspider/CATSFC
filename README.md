@@ -112,7 +112,19 @@ Available actions are:
   * If the current display mode *is* a full-screen mode, then the display mode
     is set to 3 (Middle, square pixels) and the top and bottom will be cut off.
   * If the current display mode *is not* a full-screen mode, then the display
-    mode is set to 4 (Entire screen, smoothed).
+  mode is set to 4 (Entire screen, smoothed).
+
+# Multitap
+
+The primary reason for this fork is to be able to enable the multitap without
+manual configuration for each ROM or other manual intervention. As such if
+a button is pressed on gamepad 3 or 4 then the multitap is automatically enabled.
+
+It is said that there are some games that will not work with the multitap enabled,
+though I have been unable to determine exactly which games these are. In any case
+if games like this do exist then this version will work with them (so long as buttons
+are not pressed on controller 3 or 4) and still allow multitap to be auto-enabled
+for games that use it.
 
 # The font
 
