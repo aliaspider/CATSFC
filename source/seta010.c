@@ -559,7 +559,25 @@ void S9xSetST010(uint32_t Address, uint8_t Byte)
          x = Memory.SRAM[0] | (Memory.SRAM[1] << 8);
          y = Memory.SRAM[2] | (Memory.SRAM[3] << 8);
 #endif
-         square = (int16_t)sqrt((double)(y * y + x * x));
+         if (x < 0)
+            x = -x;
+         
+         if (y < 0)
+            y = -y;
+
+         if (y > x)
+         {
+            x ^= y;
+            y ^= x;
+            x ^= y;
+         }
+
+         int16_t approx = (y * 1007) + (x * 441);
+         
+         if (y < (x << 4))
+            approx -= (y * 40);
+
+         square = (approx + 512) >> 10;
 
 #if defined(FAST_LSB_WORD_ACCESS) && !defined(ANDROID)
          /* TODO - FIXME */
