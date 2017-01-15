@@ -178,10 +178,6 @@ void S9xInitDisplay(void)
 
 bool S9xInitUpdate()
 {
-   //   IPPU.RenderThisFrame = 0;
-   //   video_cb(dummy_frame,256,224,512);
-   //   return (false);
-
    return (true);
 }
 #ifndef __WIN32__
@@ -426,7 +422,6 @@ static void check_variables(void)
 #define FRAMESKIP
 #endif
 
-//#define NO_VIDEO_OUTPUT
 static float samples_to_play = 0.0;
 void retro_run(void)
 {
@@ -954,9 +949,6 @@ void* retro_get_memory_data(unsigned type)
          data = Memory.SRAM;
          break;
       case RETRO_MEMORY_RTC:
-#if 0
-         data = RTCData.reg;
-#endif
          break;
       case RETRO_MEMORY_SYSTEM_RAM:
          data = Memory.RAM;
@@ -964,9 +956,6 @@ void* retro_get_memory_data(unsigned type)
       case RETRO_MEMORY_VIDEO_RAM:
          data = Memory.VRAM;
          break;
-      //case RETRO_MEMORY_ROM:
-      //   data = Memory.ROM;
-      //   break;
       default:
          break;
    }
@@ -986,7 +975,7 @@ size_t retro_get_memory_size(unsigned type)
             size = 0x20000;
          break;
       case RETRO_MEMORY_RTC:
-         size = (Settings.SRTC || Settings.SPC7110RTC)?20:0;
+         size = (Settings.SRTC || Settings.SPC7110RTC) ? 20 : 0;
          break;
       case RETRO_MEMORY_SYSTEM_RAM:
          size = 128 * 1024;
@@ -994,9 +983,6 @@ size_t retro_get_memory_size(unsigned type)
       case RETRO_MEMORY_VIDEO_RAM:
          size = 64 * 1024;
          break;
-      //case RETRO_MEMORY_ROM:
-      //   data = Memory.CalculatedSize;
-      //   break;
       default:
          size = 0;
          break;

@@ -8,7 +8,6 @@
 #include <string.h>
 #include <sys/types.h>
 
-/* #define PIXEL_FORMAT RGB565 */
 #ifdef PSP
 #define PIXEL_FORMAT BGR555
 #else

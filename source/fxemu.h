@@ -39,9 +39,6 @@ extern uint32_t FxGetPlotOptionRegister();
 extern uint32_t FxGetSourceRegisterIndex();
 extern uint32_t FxGetDestinationRegisterIndex();
 
-/* Get string for opcode currently in the pipe */
-extern void FxPipeString(char* pvString);
-
 /* Get the byte currently in the pipe */
 extern uint8_t FxPipe();
 

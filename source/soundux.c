@@ -322,49 +322,6 @@ void S9xSetEnvelopeHeight(int channel, int level)
       S9xAPUSetEndOfSample(channel, ch);
 }
 
-int S9xGetEnvelopeHeight(int channel)
-{
-   if ((Settings.SoundEnvelopeHeightReading ||
-         SNESGameFixes.SoundEnvelopeHeightReading2) &&
-         SoundData.channels[channel].state != SOUND_SILENT &&
-         SoundData.channels[channel].state != SOUND_GAIN)
-      return (SoundData.channels[channel].envx);
-
-   //siren fix from XPP
-   if (SNESGameFixes.SoundEnvelopeHeightReading2 &&
-         SoundData.channels[channel].state != SOUND_SILENT)
-      return (SoundData.channels[channel].envx);
-
-   return (0);
-}
-
-#if 1
-void S9xSetSoundSample(int channel, uint16_t sample_number)
-{
-}
-#else
-void S9xSetSoundSample(int channel, uint16_t sample_number)
-{
-   register Channel* ch = &SoundData.channels[channel];
-
-   if (ch->state != SOUND_SILENT &&
-         sample_number != ch->sample_number)
-   {
-      int keep = ch->state;
-      ch->state = SOUND_SILENT;
-      ch->sample_number = sample_number;
-      ch->loop = false;
-      ch->needs_decode = true;
-      ch->last_block = false;
-      ch->previous [0] = ch->previous[1] = 0;
-      uint8_t* dir = S9xGetSampleAddress(sample_number);
-      ch->block_pointer = READ_WORD(dir);
-      ch->sample_pointer = 0;
-      ch->state = keep;
-   }
-}
-#endif
-
 void S9xSetSoundFrequency(int channel, int hertz)
 {
    if (so.playback_rate)
@@ -967,12 +924,6 @@ static inline void MixStereo(int sample_count)
 stereo_exit:
       ;
    }
-}
-
-// For backwards compatibility with older port specific code
-void S9xMixSamplesO(uint8_t* buffer, int sample_count, int byte_offset)
-{
-   S9xMixSamples(buffer + byte_offset, sample_count);
 }
 
 void S9xMixSamples(uint8_t* buffer, int sample_count)

@@ -111,8 +111,6 @@ const uint32_t crc32Table[256] =
    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-
-
 void S9xDeinterleaveType1(int TotalFileSize, uint8_t* base)
 {
    if (Settings.DisplayColor == 0xffff)
@@ -401,11 +399,6 @@ bool S9xInitMemory()
 
 void S9xDeinitMemory()
 {
-#ifdef __W32_HEAP
-   if (_HEAPOK != _heapchk())
-      MessageBox(GUI.hWnd, "Deinit", "Heap Corrupt", MB_OK);
-#endif
-
    if (Memory.RAM)
    {
       free((char*) Memory.RAM);
@@ -1032,7 +1025,6 @@ again:
          {
             S9xDeinterleaveType1(Memory.CalculatedSize - 0x400000, Memory.ROM);
             S9xDeinterleaveType1(0x400000, Memory.ROM + Memory.CalculatedSize - 0x400000);
-
          }
 
          Memory.LoROM = false;
@@ -1410,7 +1402,6 @@ void InitROM(bool Interleaved)
       size = 1 << power2;
       uint32_t remainder = Memory.CalculatedSize - size;
 
-
       int i;
 
       for (i = 0; i < size; i++)
@@ -1435,10 +1426,8 @@ void InitROM(bool Interleaved)
          sum1 -= sub;
       }
 
-
       if (remainder)
          sum1 += sum2 * (size / remainder);
-
 
       sum1 &= 0xffff;
       Memory.CalculatedChecksum = sum1;
@@ -1547,7 +1536,6 @@ void FixROMSpeed()
 
    if (CPU.FastROMSpeed == 0)
       CPU.FastROMSpeed = SLOW_ONE_CYCLE;
-
 
    for (c = 0x800; c < 0x1000; c++)
    {
@@ -3075,20 +3063,6 @@ const char* ROMID()
 
 void ApplyROMFixes()
 {
-#ifdef __W32_HEAP
-   if (_HEAPOK != _heapchk())
-      MessageBox(GUI.hWnd, "ApplyROMFixes", "Heap Corrupt", MB_OK);
-#endif
-
-   //don't steal my work! -MK
-   if (Memory.ROMCRC32 == 0x1B4A5616
-         && strncmp(Memory.ROMName, "RUDORA NO HIHOU", 15) == 0)
-   {
-      strncpy(Memory.ROMName, "THIS SCRIPT WAS STOLEN", 22);
-      Settings.DisplayColor = BUILD_PIXEL(31, 0, 0);
-      SET_UI_COLOR(255, 0, 0);
-   }
-
    /*
    HACKS NSRT can fix that we hadn't detected before.
    [14:25:13] <@Nach>     case 0x0c572ef0: //So called Hook (US)(2648)

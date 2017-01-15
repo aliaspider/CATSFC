@@ -331,7 +331,6 @@ void S9xSetST010(uint32_t Address, uint8_t Byte)
       ST010.control_enable = true;
       return;
    }
-   //printf("Write %06X:%02X\n", Address, Byte);
 
    if ((Address & 0xFFF) == 0x20 && ST010.control_enable)
       ST010.op_reg = Byte;
@@ -574,7 +573,6 @@ void S9xSetST010(uint32_t Address, uint8_t Byte)
          y = Memory.SRAM[2] | (Memory.SRAM[3] << 8);
 #endif
          square = (int16_t)sqrt((double)(y * y + x * x));
-         //SETA_Distance( x,y,square );
 
 #if defined(FAST_LSB_WORD_ACCESS) && !defined(ANDROID)
          /* TODO - FIXME */
