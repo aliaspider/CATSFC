@@ -355,7 +355,6 @@ void retro_init(void)
    S9xInitSound();
 #endif
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
-
 }
 
 void retro_deinit(void)

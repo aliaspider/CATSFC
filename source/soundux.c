@@ -96,7 +96,7 @@ void S9xSetEnvRate(Channel* ch, uint32_t rate, int direction, int target)
 {
    ch->envx_target = target;
 
-   if (rate == ~0UL)
+   if (rate == ~((uint32_t) 0u))
    {
       ch->direction = 0;
       rate = 0;
@@ -1050,9 +1050,6 @@ void S9xResetSound(bool full)
       SoundData.echo_write_enabled = 0;
       SoundData.echo_channel_enable = 0;
       SoundData.pitch_mod = 0;
-      SoundData.dummy[0] = 0;
-      SoundData.dummy[1] = 0;
-      SoundData.dummy[2] = 0;
       SoundData.master_volume[0] = 0;
       SoundData.master_volume[1] = 0;
       SoundData.echo_volume[0] = 0;

@@ -2237,7 +2237,7 @@ void TalesROMMap(bool Interleaved)
 
    if ((strncmp("TALES", (char*)Memory.Map[8] + 0xFFC0, 5) == 0))
    {
-      if (((*(Memory.Map[8] + 0xFFDE)) == (*(Memory.Map[0x808] + 0xFFDE))))
+      if (*(Memory.Map[8] + 0xFFDE) == *(Memory.Map[0x808] + 0xFFDE))
       {
          Settings.DisplayColor = BUILD_PIXEL(31, 0, 0);
          SET_UI_COLOR(255, 0, 0);

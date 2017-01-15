@@ -112,10 +112,7 @@ void S9xMainLoop_SA1_SFX(void)
    S9xAPUPackStatus();
 #endif
    if (CPU.Flags & SCAN_KEYS_FLAG)
-   {
-      S9xSyncSpeed();
       CPU.Flags &= ~SCAN_KEYS_FLAG;
-   }
 
 #ifdef DETECT_NASTY_FX_INTERLEAVE
    if (CPU.BRKTriggered && Settings.SuperFX && !CPU.TriedInterleavedMode2)
@@ -196,10 +193,7 @@ void S9xMainLoop_SA1_NoSFX(void)
    S9xAPUPackStatus();
 #endif
    if (CPU.Flags & SCAN_KEYS_FLAG)
-   {
-      S9xSyncSpeed();
       CPU.Flags &= ~SCAN_KEYS_FLAG;
-   }
 }
 
 void S9xMainLoop_NoSA1_SFX(void)
@@ -269,10 +263,7 @@ void S9xMainLoop_NoSA1_SFX(void)
    S9xAPUPackStatus();
 #endif
    if (CPU.Flags & SCAN_KEYS_FLAG)
-   {
-      S9xSyncSpeed();
       CPU.Flags &= ~SCAN_KEYS_FLAG;
-   }
 
 #ifdef DETECT_NASTY_FX_INTERLEAVE
    if (CPU.BRKTriggered && Settings.SuperFX && !CPU.TriedInterleavedMode2)
@@ -351,10 +342,7 @@ void S9xMainLoop_NoSA1_NoSFX(void)
    S9xAPUPackStatus();
 #endif
    if (CPU.Flags & SCAN_KEYS_FLAG)
-   {
-      S9xSyncSpeed();
       CPU.Flags &= ~SCAN_KEYS_FLAG;
-   }
 }
 
 void S9xSetIRQ(uint32_t source)
