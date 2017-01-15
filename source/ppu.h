@@ -241,7 +241,6 @@ extern SPPU PPU;
 extern SDMA DMA [8];
 extern InternalPPU IPPU;
 
-#include "gfx.h"
 #include "memmap.h"
 
 typedef struct

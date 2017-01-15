@@ -3152,29 +3152,6 @@ static void RenderScreen(uint8_t* Screen, bool sub, bool force_no_add, uint8_t D
    }
 }
 
-#include "font.h"
-
-void DisplayChar(uint8_t* Screen, uint8_t c)
-{
-   int line = (((c & 0x7f) - 32) >> 4) * font_height;
-   int offset = (((c & 0x7f) - 32) & 15) * font_width;
-   int h, w;
-   uint16_t* s = (uint16_t*) Screen;
-   for (h = 0; h < font_height; h++, line++,
-         s += GFX.PPL - font_width)
-   {
-      for (w = 0; w < font_width; w++, s++)
-      {
-         uint8_t p = font [line][offset + w];
-
-         if (p == '#')
-            *s = Settings.DisplayColor;
-         else if (p == '.')
-            *s = BLACK;
-      }
-   }
-}
-
 void S9xUpdateScreen(void)
 {
    int32_t x2 = 1;
