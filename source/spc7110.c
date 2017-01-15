@@ -52,15 +52,15 @@ typedef struct SPC7110DecompressionLocationStruct
    uint32_t size;
    uint16_t used_offset;
    uint16_t used_len;
-} Data7110;
+} PACKING Data7110;
 
 //this maps an index.bin table to the decompression pack
 typedef struct SPC7110DecompressionIndexStruct
 {
+   Data7110 location[256];
    int table;
    bool is_file;
-   Data7110 location[256];
-} Index7110;
+} PACKING Index7110;
 
 //this contains all the data for the decompression pack.
 typedef struct SPC7110DecompressionPackStructure
@@ -69,9 +69,9 @@ typedef struct SPC7110DecompressionPackStructure
    Index7110 tableEnts[MAX_TABLES];
    int last_table;
    int idx;
-   uint8_t last_idx;
    uint16_t last_offset;
-} Pack7110;
+   uint8_t last_idx;
+} PACKING Pack7110;
 
 
 char pfold[9];              //hack variable for log naming (each game makes a different log)
@@ -2163,4 +2163,3 @@ bool S9xLoadSPC7110RTC(S7RTC* rtc_f9)
    fclose(fp);
    return (true);
 }
-

@@ -24,65 +24,61 @@ bool S9xInitUpdate(void);
 
 struct SGFX
 {
-   // Initialize these variables
-   uint8_t*  Screen_buffer;
-   uint8_t*  SubScreen_buffer;
-   uint8_t*  ZBuffer_buffer;
-   uint8_t*  SubZBuffer_buffer;
-
-   uint8_t*  Screen;
-   uint8_t*  SubScreen;
-   uint8_t*  ZBuffer;
-   uint8_t*  SubZBuffer;
-   uint32_t Pitch;
-
-   // Setup in call to S9xInitGFX()
-   int   Delta;
-   uint16_t* X2;
-   uint16_t* ZERO_OR_X2;
-   uint16_t* ZERO;
-   uint32_t RealPitch; // True pitch of Screen buffer.
-   uint32_t Pitch2;    // Same as RealPitch except while using speed up hack for Glide.
-   uint32_t ZPitch;    // Pitch of ZBuffer
-   uint32_t PPL;         // Number of pixels on each of Screen buffer
-   uint32_t PPLx2;
-   uint32_t PixSize;
-   uint8_t S_safety_margin[8];
-   uint8_t*  S;
-   uint8_t DB_safety_margin[8];
-   uint8_t*  DB;
-   ptrdiff_t DepthDelta;
-   uint8_t  Z1;          // Depth for comparison
-   uint8_t  Z2;          // Depth to save
-   uint8_t  ZSprite;     // Used to ensure only 1st sprite is drawn per pixel
-   uint32_t FixedColour;
-   const char* InfoString;
-   uint32_t InfoStringTimeout;
-   uint32_t StartY;
-   uint32_t EndY;
    struct ClipData* pCurrentClip;
-   uint32_t Mode7Mask;
-   uint32_t Mode7PriorityMask;
-   uint8_t  OBJWidths[128];
-   uint8_t  OBJVisibleTiles[128];
+   const char*      InfoString;
+   uint16_t*        X2;
+   uint16_t*        ZERO_OR_X2;
+   uint16_t*        ZERO;
+   uint8_t*         Screen_buffer;
+   uint8_t*         SubScreen_buffer;
+   uint8_t*         ZBuffer_buffer;
+   uint8_t*         SubZBuffer_buffer;
+   uint8_t*         Screen;
+   uint8_t*         SubScreen;
+   uint8_t*         ZBuffer;
+   uint8_t*         SubZBuffer;
+   uint8_t*         S;
+   uint8_t*         DB;
+   uint8_t          OBJWidths[128];
+   uint8_t          OBJVisibleTiles[128];
+   uint8_t          S_safety_margin[8];
+   uint8_t          DB_safety_margin[8];
+   ptrdiff_t        DepthDelta;
+   int              Delta;
+   uint32_t         Pitch;
+   uint32_t         RealPitch;           // True pitch of Screen buffer.
+   uint32_t         Pitch2;              // Same as RealPitch except while using speed up hack for Glide.
+   uint32_t         ZPitch;              // Pitch of ZBuffer
+   uint32_t         PPL;                 // Number of pixels on each of Screen buffer
+   uint32_t         PPLx2;
+   uint32_t         PixSize;
+   uint32_t         FixedColour;
+   uint32_t         InfoStringTimeout;
+   uint32_t         StartY;
+   uint32_t         EndY;
+   uint32_t         Mode7Mask;
+   uint32_t         Mode7PriorityMask;
+   uint8_t          Z1;                  // Depth for comparison
+   uint8_t          Z2;                  // Depth to save
+   uint8_t          ZSprite;             // Used to ensure only 1st sprite is drawn per pixel
+   uint8_t          r212c;
+   uint8_t          r212d;
+   uint8_t          r2130;
+   uint8_t          r2131;
+   bool             Pseudo;
+
    struct
    {
-      uint8_t RTOFlags;
-      int16_t Tiles;
       struct
       {
          int8_t Sprite;
          uint8_t Line;
-      } OBJ[32];
-   } OBJLines [SNES_HEIGHT_EXTENDED];
+      } PACKING OBJ[32];
 
-   uint8_t  r212c;
-   uint8_t  r212d;
-   uint8_t  r2130;
-   uint8_t  r2131;
-   bool  Pseudo;
-
-};
+      int16_t Tiles;
+      uint8_t RTOFlags;
+   } PACKING OBJLines [SNES_HEIGHT_EXTENDED];
+} PACKING;
 
 struct SLineData
 {
@@ -90,8 +86,8 @@ struct SLineData
    {
       uint16_t VOffset;
       uint16_t HOffset;
-   } BG [4];
-};
+   } PACKING BG [4];
+} PACKING;
 
 #define H_FLIP 0x4000
 #define V_FLIP 0x8000
@@ -99,21 +95,19 @@ struct SLineData
 
 typedef struct
 {
+   uint8_t* Buffer;
+   uint8_t* Buffered;
    uint32_t TileSize;
    uint32_t BitShift;
    uint32_t TileShift;
    uint32_t TileAddress;
    uint32_t NameSelect;
    uint32_t SCBase;
-
    uint32_t StartPalette;
    uint32_t PaletteShift;
    uint32_t PaletteMask;
-
-   uint8_t* Buffer;
-   uint8_t* Buffered;
-   bool  DirectColourMode;
-} SBG;
+   bool     DirectColourMode;
+} PACKING SBG;
 
 struct SLineMatrixData
 {
@@ -123,7 +117,7 @@ struct SLineMatrixData
    short MatrixD;
    short CentreX;
    short CentreY;
-};
+} PACKING;
 
 extern uint32_t odd_high [4][16];
 extern uint32_t odd_low [4][16];
@@ -222,4 +216,3 @@ typedef void (*LargePixelRenderer)(uint32_t Tile, int32_t Offset,
                                    uint32_t StartLine, uint32_t LineCount);
 
 #endif
-

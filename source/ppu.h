@@ -24,59 +24,60 @@ extern uint16_t SignExtend [2];
 
 struct ClipData
 {
-   uint32_t  Count [6];
    uint32_t  Left [6][6];
    uint32_t  Right [6][6];
-};
+   uint32_t  Count [6];
+} PACKING;
 
 typedef struct
 {
-   bool  ColorsChanged;
-   uint8_t  HDMA;
-   bool  HDMAStarted;
-   uint8_t  MaxBrightness;
-   bool  LatchedBlanking;
-   bool  OBJChanged;
-   bool  RenderThisFrame;
-   bool  DirectColourMapsNeedRebuild;
-   uint32_t FrameCount;
-   uint32_t RenderedFramesCount;
-   uint32_t DisplayedRenderedFrameCount;
-   uint32_t SkippedFrames;
-   uint32_t FrameSkip;
-   uint8_t*  TileCache [3];
-   uint8_t*  TileCached [3];
-#ifdef CORRECT_VRAM_READS
-   uint16_t VRAMReadBuffer;
-#else
-   bool  FirstVRAMRead;
-#endif
-   bool  DoubleHeightPixels;
-   bool  Interlace;
-   bool  InterlaceSprites;
-   bool  DoubleWidthPixels;
-   bool  HalfWidthPixels;
-   int    RenderedScreenHeight;
-   int    RenderedScreenWidth;
-   uint32_t Red [256];
-   uint32_t Green [256];
-   uint32_t Blue [256];
-   uint8_t*  XB;
-   uint16_t ScreenColors [256];
-   int     PreviousLine;
-   int     CurrentLine;
-   int     Controller;
-   uint32_t Joypads[5];
-   uint32_t SuperScope;
-   uint32_t Mouse[2];
-   int    PrevMouseX[2];
-   int    PrevMouseY[2];
+   uint8_t*        TileCache [3];
+   uint8_t*        TileCached [3];
+   uint8_t*        XB;
    struct ClipData Clip [2];
-} InternalPPU;
+   uint32_t        Red [256];
+   uint32_t        Green [256];
+   uint32_t        Blue [256];
+   uint32_t        Joypads[5];
+   uint32_t        Mouse[2];
+   uint16_t        ScreenColors [256];
+   int             PrevMouseX[2];
+   int             PrevMouseY[2];
+   int             RenderedScreenHeight;
+   int             RenderedScreenWidth;
+   int             PreviousLine;
+   int             CurrentLine;
+   int             Controller;
+   uint32_t        FrameCount;
+   uint32_t        RenderedFramesCount;
+   uint32_t        DisplayedRenderedFrameCount;
+   uint32_t        SkippedFrames;
+   uint32_t        FrameSkip;
+   uint32_t        SuperScope;
+#ifdef CORRECT_VRAM_READS
+   uint16_t        VRAMReadBuffer;
+#endif
+   uint8_t         HDMA;
+   uint8_t         MaxBrightness;
+#ifndef CORRECT_VRAM_READS
+   bool            FirstVRAMRead;
+#endif
+   bool            ColorsChanged;
+   bool            HDMAStarted;
+   bool            LatchedBlanking;
+   bool            OBJChanged;
+   bool            RenderThisFrame;
+   bool            DirectColourMapsNeedRebuild;
+   bool            DoubleHeightPixels;
+   bool            Interlace;
+   bool            InterlaceSprites;
+   bool            DoubleWidthPixels;
+   bool            HalfWidthPixels;
+} PACKING InternalPPU;
 
 struct SOBJ
 {
-   short  HPos;
+   uint16_t HPos;
    uint16_t VPos;
    uint16_t Name;
    uint8_t  VFlip;
@@ -84,110 +85,103 @@ struct SOBJ
    uint8_t  Priority;
    uint8_t  Palette;
    uint8_t  Size;
-};
+} PACKING;
 
 typedef struct
 {
-   uint8_t  BGMode;
-   uint8_t  BG3Priority;
-   uint8_t  Brightness;
-
    struct
    {
-      bool High;
-      uint8_t Increment;
       uint16_t Address;
       uint16_t Mask1;
       uint16_t FullGraphicCount;
       uint16_t Shift;
-   } VMA;
+      uint8_t  Increment;
+      bool     High;
+   } PACKING VMA;
 
    struct
    {
       uint16_t SCBase;
       uint16_t VOffset;
       uint16_t HOffset;
-      uint8_t BGSize;
       uint16_t NameBase;
       uint16_t SCSize;
-   } BG [4];
+      uint8_t  BGSize;
+   } PACKING BG [4];
 
-   bool  CGFLIP;
-   uint16_t CGDATA [256];
-   uint8_t  FirstSprite;
-   uint8_t  LastSprite;
    struct SOBJ OBJ [128];
-   uint8_t  OAMPriorityRotation;
-   uint16_t OAMAddr;
-   uint8_t  RangeTimeOver;
-
-   uint8_t  OAMFlip;
-   uint16_t OAMTileAddress;
-   uint16_t IRQVBeamPos;
-   uint16_t IRQHBeamPos;
-   uint16_t VBeamPosLatched;
-   uint16_t HBeamPosLatched;
-
-   uint8_t  HBeamFlip;
-   uint8_t  VBeamFlip;
-   uint8_t  HVBeamCounterLatched;
-
-   short  MatrixA;
-   short  MatrixB;
-   short  MatrixC;
-   short  MatrixD;
-   short  CentreX;
-   short  CentreY;
-   uint8_t  Joypad1ButtonReadPos;
-   uint8_t  Joypad2ButtonReadPos;
-
-   uint8_t  CGADD;
-   uint8_t  FixedColourRed;
-   uint8_t  FixedColourGreen;
-   uint8_t  FixedColourBlue;
-   uint16_t SavedOAMAddr;
-   uint16_t ScreenHeight;
-   uint32_t WRAM;
-   uint8_t  BG_Forced;
-   bool  ForcedBlanking;
-   bool  OBJThroughMain;
-   bool  OBJThroughSub;
-   uint8_t  OBJSizeSelect;
-   uint16_t OBJNameBase;
-   bool  OBJAddition;
-   uint8_t  OAMReadFlip;
-   uint8_t  OAMData [512 + 32];
-   bool  VTimerEnabled;
-   bool  HTimerEnabled;
-   short  HTimerPosition;
-   uint8_t  Mosaic;
-   bool  BGMosaic [4];
-   bool  Mode7HFlip;
-   bool  Mode7VFlip;
-   uint8_t  Mode7Repeat;
-   uint8_t  Window1Left;
-   uint8_t  Window1Right;
-   uint8_t  Window2Left;
-   uint8_t  Window2Right;
-   uint8_t  ClipCounts [6];
-   uint8_t  ClipWindowOverlapLogic [6];
-   uint8_t  ClipWindow1Enable [6];
-   uint8_t  ClipWindow2Enable [6];
-   bool  ClipWindow1Inside [6];
-   bool  ClipWindow2Inside [6];
-   bool  RecomputeClipWindows;
-   uint8_t  CGFLIPRead;
-   uint16_t OBJNameSelect;
-   bool  Need16x8Mulitply;
-   uint8_t  Joypad3ButtonReadPos;
-   uint8_t  MouseSpeed[2];
-
-   // XXX Do these need to be added to snapshot.cpp?
-   uint16_t OAMWriteRegister;
-   uint8_t BGnxOFSbyte;
-   uint8_t OpenBus1;
-   uint8_t OpenBus2;
-} SPPU;
+   uint16_t    CGDATA [256];
+   uint8_t     OAMData [512 + 32];
+   uint8_t     ClipCounts [6];
+   uint8_t     ClipWindowOverlapLogic [6];
+   uint8_t     ClipWindow1Enable [6];
+   uint8_t     ClipWindow2Enable [6];
+   uint8_t     MouseSpeed[2];
+   bool        BGMosaic [4];
+   bool        ClipWindow1Inside [6];
+   bool        ClipWindow2Inside [6];
+   uint32_t    WRAM;
+   uint16_t    OAMAddr;
+   uint16_t    OAMTileAddress;
+   uint16_t    IRQVBeamPos;
+   uint16_t    IRQHBeamPos;
+   uint16_t    VBeamPosLatched;
+   uint16_t    HBeamPosLatched;
+   uint16_t    SavedOAMAddr;
+   uint16_t    ScreenHeight;
+   uint16_t    OBJNameBase;
+   uint16_t    OBJNameSelect;
+   uint16_t    OAMWriteRegister;
+   short       MatrixA;
+   short       MatrixB;
+   short       MatrixC;
+   short       MatrixD;
+   short       CentreX;
+   short       CentreY;
+   short       HTimerPosition;
+   uint8_t     BGMode;
+   uint8_t     BG3Priority;
+   uint8_t     Brightness;
+   uint8_t     FirstSprite;
+   uint8_t     LastSprite;
+   uint8_t     OAMPriorityRotation;
+   uint8_t     RangeTimeOver;
+   uint8_t     OAMFlip;
+   uint8_t     HBeamFlip;
+   uint8_t     VBeamFlip;
+   uint8_t     HVBeamCounterLatched;
+   uint8_t     Joypad1ButtonReadPos;
+   uint8_t     Joypad2ButtonReadPos;
+   uint8_t     CGADD;
+   uint8_t     FixedColourRed;
+   uint8_t     FixedColourGreen;
+   uint8_t     FixedColourBlue;
+   uint8_t     BG_Forced;
+   uint8_t     OBJSizeSelect;
+   uint8_t     OAMReadFlip;
+   uint8_t     Mosaic;
+   uint8_t     Mode7Repeat;
+   uint8_t     Window1Left;
+   uint8_t     Window1Right;
+   uint8_t     Window2Left;
+   uint8_t     Window2Right;
+   uint8_t     CGFLIPRead;
+   uint8_t     Joypad3ButtonReadPos;
+   uint8_t     BGnxOFSbyte;
+   uint8_t     OpenBus1;
+   uint8_t     OpenBus2;
+   bool        CGFLIP;
+   bool        ForcedBlanking;
+   bool        OBJThroughMain;
+   bool        OBJThroughSub;
+   bool        OBJAddition;
+   bool        VTimerEnabled;
+   bool        HTimerEnabled;
+   bool        Mode7HFlip;
+   bool        Mode7VFlip;
+   bool        RecomputeClipWindows;
+   bool        Need16x8Mulitply;
+} PACKING SPPU;
 
 #define CLIP_OR 0
 #define CLIP_AND 1
@@ -196,27 +190,22 @@ typedef struct
 
 typedef struct
 {
-   bool  TransferDirection;
-   bool  AAddressFixed;
-   bool  AAddressDecrement;
-   uint8_t  TransferMode;
-
-   uint8_t  ABank;
    uint16_t AAddress;
    uint16_t Address;
-   uint8_t  BAddress;
-
-   // General DMA only:
-   uint16_t TransferBytes;
-
-   // H-DMA only:
-   bool  HDMAIndirectAddressing;
+   uint16_t TransferBytes; // General DMA only
    uint16_t IndirectAddress;
+   uint8_t  TransferMode;
+   uint8_t  ABank;
+   uint8_t  BAddress;
    uint8_t  IndirectBank;
    uint8_t  Repeat;
    uint8_t  LineCount;
    uint8_t  FirstLine;
-} SDMA;
+   bool     TransferDirection;
+   bool     AAddressFixed;
+   bool     AAddressDecrement;
+   bool     HDMAIndirectAddressing;
+} PACKING SDMA;
 
 void S9xUpdateScreen();
 void S9xResetPPU();
@@ -248,7 +237,7 @@ typedef struct
    uint8_t _5C77;
    uint8_t _5C78;
    uint8_t _5A22;
-} SnesModel;
+} PACKING SnesModel;
 
 extern SnesModel* Model;
 extern SnesModel M1SNES;
@@ -275,4 +264,3 @@ void JustifierButtons(uint32_t*);
 bool JustifierOffscreen();
 
 #endif
-

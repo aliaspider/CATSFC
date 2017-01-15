@@ -5210,4 +5210,3 @@ SOpcodes S9xOpcodesM0X1[256] =
    {OpFAX1},    {OpFB},      {OpFC},      {OpFDM0},    {OpFEM0},
    {OpFFM0}
 };
-

@@ -34,7 +34,7 @@ static struct
    uint8_t code_size;
    uint8_t MPS_next;
    uint8_t LPS_next;
-} evolution_table[] =
+} PACKING evolution_table[] =
 {
    /*  0 */ { 0, 25, 25},
    /*  1 */ { 0, 2, 1},

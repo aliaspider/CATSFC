@@ -8,53 +8,53 @@
 
 typedef struct
 {
+   pair      P;
+   pair      A;
+   pair      D;
+   pair      S;
+   pair      X;
+   pair      Y;
+   uint16_t  PC;
    uint8_t   PB;
    uint8_t   DB;
-   pair    P;
-   pair    A;
-   pair    D;
-   pair    S;
-   pair    X;
-   pair    Y;
-   uint16_t  PC;
-} SSA1Registers;
+} PACKING SSA1Registers;
 
 typedef struct
 {
-   SOpcodes* S9xOpcodes;
-   uint8_t   _Carry;
-   uint8_t   _Zero;
-   uint8_t   _Negative;
-   uint8_t   _Overflow;
-   bool   CPUExecuting;
-   uint32_t  ShiftedPB;
-   uint32_t  ShiftedDB;
-   uint32_t  Flags;
-   bool   Executing;
-   bool   NMIActive;
-   uint8_t   IRQActive;
-   bool   WaitingForInterrupt;
-   bool   Waiting;
-   uint8_t*   PC;
-   uint8_t*   PCBase;
-   uint8_t*   BWRAM;
-   uint8_t*   PCAtOpcodeStart;
-   uint8_t*   WaitAddress;
-   uint32_t  WaitCounter;
-   uint8_t*   WaitByteAddress1;
-   uint8_t*   WaitByteAddress2;
-   uint8_t*   Map [MEMMAP_NUM_BLOCKS];
-   uint8_t*   WriteMap [MEMMAP_NUM_BLOCKS];
-   int16_t   op1;
-   int16_t   op2;
-   int     arithmetic_op;
-   int64_t   sum;
-   bool   overflow;
-   uint8_t   VirtualBitmapFormat;
-   bool   in_char_dma;
-   uint8_t   variable_bit_pos;
+   uint8_t*      Map [MEMMAP_NUM_BLOCKS];
+   uint8_t*      WriteMap [MEMMAP_NUM_BLOCKS];
+   SOpcodes*     S9xOpcodes;
+   uint8_t*      PC;
+   uint8_t*      PCBase;
+   uint8_t*      BWRAM;
+   uint8_t*      PCAtOpcodeStart;
+   uint8_t*      WaitAddress;
+   uint8_t*      WaitByteAddress1;
+   uint8_t*      WaitByteAddress2;
    SSA1Registers Registers;
-} SSA1;
+   int64_t       sum;
+   int           arithmetic_op;
+   uint32_t      WaitCounter;
+   uint32_t      ShiftedPB;
+   uint32_t      ShiftedDB;
+   uint32_t      Flags;
+   int16_t       op1;
+   int16_t       op2;
+   uint8_t       _Carry;
+   uint8_t       _Zero;
+   uint8_t       _Negative;
+   uint8_t       _Overflow;
+   uint8_t       IRQActive;
+   uint8_t       VirtualBitmapFormat;
+   uint8_t       variable_bit_pos;
+   bool          CPUExecuting;
+   bool          Executing;
+   bool          NMIActive;
+   bool          WaitingForInterrupt;
+   bool          Waiting;
+   bool          overflow;
+   bool          in_char_dma;
+} PACKING SSA1;
 
 #define SA1CheckZero() (SA1._Zero == 0)
 #define SA1CheckCarry() (SA1._Carry)
@@ -69,7 +69,6 @@ typedef struct
 #define SA1ClearFlags(f) (SA1.Registers.P.W &= ~(f))
 #define SA1SetFlags(f)   (SA1.Registers.P.W |=  (f))
 #define SA1CheckFlag(f)  (SA1.Registers.PL & (f))
-
 
 uint8_t S9xSA1GetByte(uint32_t);
 uint16_t S9xSA1GetWord(uint32_t);
@@ -128,4 +127,3 @@ static inline void S9xSA1FixCycles(void)
    }
 }
 #endif
-

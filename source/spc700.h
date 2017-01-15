@@ -49,6 +49,8 @@
 
 typedef union
 {
+   uint16_t W;
+
 #ifdef MSB_FIRST
    struct
    {
@@ -60,17 +62,16 @@ typedef union
       uint8_t A, Y;
    } B;
 #endif
-   uint16_t W;
-} YAndA;
+} PACKING YAndA;
 
 typedef struct
 {
+   YAndA    YA;
+   uint16_t PC;
    uint8_t  P;
-   YAndA YA;
    uint8_t  X;
    uint8_t  S;
-   uint16_t  PC;
-} SAPURegisters;
+} PACKING SAPURegisters;
 
 // Needed by ILLUSION OF GAIA
 #define ONE_APU_CYCLE 21

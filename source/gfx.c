@@ -935,7 +935,8 @@ static void DrawOBJS(bool OnMain, uint8_t D)
    {
       uint16_t Pos;
       bool Value;
-   } Windows[7];
+   } PACKING Windows[7];
+
    int clipcount = GFX.pCurrentClip->Count [4];
    if (!clipcount)
    {

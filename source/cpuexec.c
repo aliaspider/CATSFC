@@ -728,4 +728,3 @@ void S9xDoHBlankProcessing_NoSFX()
 
    S9xReschedule();
 }
-

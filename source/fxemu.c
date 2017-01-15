@@ -477,4 +477,3 @@ uint8_t FxPipe()
 {
    return GSU.vPipe;
 }
-

@@ -1236,5 +1236,4 @@ void S9xPlaySample(int channel)
                   APU.DSP [APU_ADSR2 + (channel << 4)]);
 }
 
-
 #endif
