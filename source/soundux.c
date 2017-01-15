@@ -15,20 +15,6 @@
    if ((v) > 32767) \
 (v) = 32767
 
-#define CLIP16_latch(v,l) \
-   if ((v) < -32768) \
-{ (v) = -32768; (l)++; }\
-   else \
-   if ((v) > 32767) \
-{ (v) = 32767; (l)++; }
-
-#define CLIP24(v) \
-   if ((v) < -8388608) \
-    (v) = -8388608; \
-   else \
-   if ((v) > 8388607) \
-(v) = 8388607
-
 #define CLIP8(v) \
    if ((v) < -128) \
     (v) = -128; \
@@ -57,14 +43,10 @@ extern int32_t NoiseFreq [32];
 
 static int32_t noise_gen;
 
-#undef ABS
-#define ABS(a) ((a) < 0 ? -(a) : (a))
-
 #define FIXED_POINT 0x10000UL
 #define FIXED_POINT_REMAINDER 0xffffUL
 #define FIXED_POINT_SHIFT 16
 
-#define VOL_DIV8  0x8000
 #define VOL_DIV16 0x0080
 #define ENVX_SHIFT 24
 

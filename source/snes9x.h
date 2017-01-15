@@ -53,29 +53,29 @@ extern int cprintf(const char* fmt, ...);
  * 64.281us / (1 / 3.546895MHz) -> 228 cycles per scanline.  */
 
 #define SNES_SCANLINE_TIME (63.695e-6)
-#define SNES_CLOCK_SPEED (3579545)
+#define SNES_CLOCK_SPEED (3579545u)
 
 #define SNES_CLOCK_LEN (1.0 / SNES_CLOCK_SPEED)
 
 #define SNES_CYCLES_PER_SCANLINE ((uint32_t) ((SNES_SCANLINE_TIME / SNES_CLOCK_LEN) * 6 + 0.5))
 
-#define ONE_CYCLE 6
-#define SLOW_ONE_CYCLE 8
-#define TWO_CYCLES 12
+#define ONE_CYCLE 6u
+#define SLOW_ONE_CYCLE 8u
+#define TWO_CYCLES 12u
 
 
-#define SNES_TR_MASK     (1 << 4)
-#define SNES_TL_MASK     (1 << 5)
-#define SNES_X_MASK      (1 << 6)
-#define SNES_A_MASK      (1 << 7)
-#define SNES_RIGHT_MASK     (1 << 8)
-#define SNES_LEFT_MASK      (1 << 9)
-#define SNES_DOWN_MASK      (1 << 10)
-#define SNES_UP_MASK     (1 << 11)
-#define SNES_START_MASK     (1 << 12)
-#define SNES_SELECT_MASK    (1 << 13)
-#define SNES_Y_MASK      (1 << 14)
-#define SNES_B_MASK      (1 << 15)
+#define SNES_TR_MASK     (1u << 4)
+#define SNES_TL_MASK     (1u << 5)
+#define SNES_X_MASK      (1u << 6)
+#define SNES_A_MASK      (1u << 7)
+#define SNES_RIGHT_MASK  (1u << 8)
+#define SNES_LEFT_MASK   (1u << 9)
+#define SNES_DOWN_MASK   (1u << 10)
+#define SNES_UP_MASK     (1u << 11)
+#define SNES_START_MASK  (1u << 12)
+#define SNES_SELECT_MASK (1u << 13)
+#define SNES_Y_MASK      (1u << 14)
+#define SNES_B_MASK      (1u << 15)
 
 enum
 {
@@ -88,18 +88,18 @@ enum
    SNES_MAX_CONTROLLER_OPTIONS
 };
 
-#define DEBUG_MODE_FLAG     (1 << 0)
-#define TRACE_FLAG         (1 << 1)
-#define SINGLE_STEP_FLAG    (1 << 2)
-#define BREAK_FLAG         (1 << 3)
-#define SCAN_KEYS_FLAG      (1 << 4)
-#define SAVE_SNAPSHOT_FLAG  (1 << 5)
-#define DELAYED_NMI_FLAG    (1 << 6)
-#define NMI_FLAG        (1 << 7)
-#define PROCESS_SOUND_FLAG  (1 << 8)
-#define FRAME_ADVANCE_FLAG  (1 << 9)
-#define DELAYED_NMI_FLAG2   (1 << 10)
-#define IRQ_PENDING_FLAG    (1 << 11)
+#define DEBUG_MODE_FLAG    (1u << 0)
+#define TRACE_FLAG         (1u << 1)
+#define SINGLE_STEP_FLAG   (1u << 2)
+#define BREAK_FLAG         (1u << 3)
+#define SCAN_KEYS_FLAG     (1u << 4)
+#define SAVE_SNAPSHOT_FLAG (1u << 5)
+#define DELAYED_NMI_FLAG   (1u << 6)
+#define NMI_FLAG           (1u << 7)
+#define PROCESS_SOUND_FLAG (1u << 8)
+#define FRAME_ADVANCE_FLAG (1u << 9)
+#define DELAYED_NMI_FLAG2  (1u << 10)
+#define IRQ_PENDING_FLAG   (1u << 11)
 
 typedef struct
 {
@@ -130,11 +130,11 @@ typedef struct
    uint32_t IRQCycleCount;
 } SCPUState;
 
-#define HBLANK_START_EVENT 0
-#define HBLANK_END_EVENT 1
-#define HTIMER_BEFORE_EVENT 2
-#define HTIMER_AFTER_EVENT 3
-#define NO_EVENT 4
+#define HBLANK_START_EVENT  0u
+#define HBLANK_END_EVENT    1u
+#define HTIMER_BEFORE_EVENT 2u
+#define HTIMER_AFTER_EVENT  3u
+#define NO_EVENT            4u
 
 typedef struct
 {

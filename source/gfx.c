@@ -11,7 +11,6 @@
 #include "cheats.h"
 
 #define M7 19
-#define M8 19
 
 void ComputeClipWindows();
 
@@ -2957,40 +2956,6 @@ static void DrawBGMode7Background16Sub1_2_i(uint8_t* Screen, int bg)
                                         GFX.FixedColour)) :
                              theColor, (ScreenColors[b & GFX.Mode7Mask]));
 }
-
-#define _BUILD_SETUP(F) \
-GFX.BuildPixel = BuildPixel##F; \
-GFX.BuildPixel2 = BuildPixel2##F; \
-GFX.DecomposePixel = DecomposePixel##F; \
-RED_LOW_BIT_MASK = RED_LOW_BIT_MASK_##F; \
-GREEN_LOW_BIT_MASK = GREEN_LOW_BIT_MASK_##F; \
-BLUE_LOW_BIT_MASK = BLUE_LOW_BIT_MASK_##F; \
-RED_HI_BIT_MASK = RED_HI_BIT_MASK_##F; \
-GREEN_HI_BIT_MASK = GREEN_HI_BIT_MASK_##F; \
-BLUE_HI_BIT_MASK = BLUE_HI_BIT_MASK_##F; \
-MAX_RED = MAX_RED_##F; \
-MAX_GREEN = MAX_GREEN_##F; \
-MAX_BLUE = MAX_BLUE_##F; \
-GREEN_HI_BIT = ((MAX_GREEN_##F + 1) >> 1); \
-SPARE_RGB_BIT_MASK = SPARE_RGB_BIT_MASK_##F; \
-RGB_LOW_BITS_MASK = (RED_LOW_BIT_MASK_##F | \
-           GREEN_LOW_BIT_MASK_##F | \
-           BLUE_LOW_BIT_MASK_##F); \
-RGB_HI_BITS_MASK = (RED_HI_BIT_MASK_##F | \
-          GREEN_HI_BIT_MASK_##F | \
-          BLUE_HI_BIT_MASK_##F); \
-RGB_HI_BITS_MASKx2 = ((RED_HI_BIT_MASK_##F | \
-             GREEN_HI_BIT_MASK_##F | \
-             BLUE_HI_BIT_MASK_##F) << 1); \
-RGB_REMOVE_LOW_BITS_MASK = ~RGB_LOW_BITS_MASK; \
-FIRST_COLOR_MASK = FIRST_COLOR_MASK_##F; \
-SECOND_COLOR_MASK = SECOND_COLOR_MASK_##F; \
-THIRD_COLOR_MASK = THIRD_COLOR_MASK_##F; \
-ALPHA_BITS_MASK = ALPHA_BITS_MASK_##F; \
-FIRST_THIRD_COLOR_MASK = FIRST_COLOR_MASK | THIRD_COLOR_MASK; \
-TWO_LOW_BITS_MASK = RGB_LOW_BITS_MASK | (RGB_LOW_BITS_MASK << 1); \
-HIGH_BITS_SHIFTED_TWO_MASK = (( (FIRST_COLOR_MASK | SECOND_COLOR_MASK | THIRD_COLOR_MASK) & \
-                                ~TWO_LOW_BITS_MASK ) >> 2);
 
 static void RenderScreen(uint8_t* Screen, bool sub, bool force_no_add, uint8_t D)
 {

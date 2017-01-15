@@ -35,14 +35,9 @@ extern struct FxInit_s SuperFX;
 #define SET_UI_COLOR(r,g,b) ;
 #endif
 
-//you would think everyone would have these
-//since they're so useful.
+// You would think everyone would have this since it is so useful.
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
 static int retry_count = 0;
