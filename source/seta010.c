@@ -565,7 +565,7 @@ void S9xSetST010(uint32_t Address, uint8_t Byte)
          if (y < 0)
             y = -y;
 
-         if (y > x)
+         if (y < x)
          {
             x ^= y;
             y ^= x;
