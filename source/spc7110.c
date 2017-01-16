@@ -52,15 +52,15 @@ typedef struct SPC7110DecompressionLocationStruct
    uint32_t size;
    uint16_t used_offset;
    uint16_t used_len;
-} Data7110;
+} PACKING Data7110;
 
 //this maps an index.bin table to the decompression pack
 typedef struct SPC7110DecompressionIndexStruct
 {
+   Data7110 location[256];
    int table;
    bool is_file;
-   Data7110 location[256];
-} Index7110;
+} PACKING Index7110;
 
 //this contains all the data for the decompression pack.
 typedef struct SPC7110DecompressionPackStructure
@@ -69,17 +69,16 @@ typedef struct SPC7110DecompressionPackStructure
    Index7110 tableEnts[MAX_TABLES];
    int last_table;
    int idx;
-   uint8_t last_idx;
    uint16_t last_offset;
-} Pack7110;
+   uint8_t last_idx;
+} PACKING Pack7110;
 
 
-char pfold[9];          //hack variable for log naming (each game makes a different log)
-Pack7110* decompack =
-   NULL; //decompression pack uses a fair chunk of RAM, so dynalloc it.
-SPC7110Regs s7r;        //SPC7110 registers, about 33KB
-S7RTC rtc_f9;           //FEOEZ (and Shounen Jump no SHou) RTC
-void  S9xUpdateRTC();   //S-RTC function hacked to work with the RTC
+char pfold[9];              //hack variable for log naming (each game makes a different log)
+Pack7110* decompack = NULL; //decompression pack uses a fair chunk of RAM, so dynalloc it.
+SPC7110Regs s7r;            //SPC7110 registers, about 33KB
+S7RTC rtc_f9;               //FEOEZ (and Shounen Jump no SHou) RTC
+void S9xUpdateRTC();        //S-RTC function hacked to work with the RTC
 
 //Emulate power on state
 void S9xSpc7110Init()
@@ -225,7 +224,7 @@ void MovePackData()
 }
 
 
-//this is similar to the last function, but it keeps the last 5 accessed files open,
+// This is similar to the last function, but it keeps the last 5 accessed files open,
 // and reads the data directly. Method 2
 void ReadPackData()
 {
@@ -1690,7 +1689,6 @@ void SPC7110Open(char* dirname)
 
    Copy7110 = &ReadPackData;
    CleanUp7110 = &Close7110Gfx;
-
 }
 
 //Cache 3's load function
@@ -1764,8 +1762,6 @@ void SPC7110Grab(char* dirname)
 
    Copy7110 = &GetPackData;
    CleanUp7110 = &Drop7110Gfx;
-
-
 }
 
 //Cache 1 clean up function
@@ -1905,7 +1901,6 @@ void S9xSpc7110Reset()
    s7r.bank50Internal = 0;
    memset(s7r.bank50, 0x00, DECOMP_BUFFER_SIZE);
 }
-
 
 //outputs a cumulative log for the game.
 //there's nothing really weird here, just
@@ -2109,6 +2104,7 @@ void Do7110Logging()
       }
    }
 }
+
 bool S9xSaveSPC7110RTC(S7RTC* rtc_f9)
 {
    FILE* fp;
@@ -2167,4 +2163,3 @@ bool S9xLoadSPC7110RTC(S7RTC* rtc_f9)
    fclose(fp);
    return (true);
 }
-

@@ -1125,16 +1125,16 @@ uint8_t DSP3GetByte(uint16_t address)
 
 typedef struct
 {
-   bool waiting4command;
-   bool half_command;
-   uint16_t command;
+   uint8_t  parameters [512];
+   uint8_t  output     [512];
    uint32_t in_count;
    uint32_t in_index;
    uint32_t out_count;
    uint32_t out_index;
-   uint8_t parameters [512];
-   uint8_t output [512];
-} SDSP4;
+   uint16_t command;
+   bool     waiting4command;
+   bool     half_command;
+} PACKING SDSP4;
 
 SDSP4 DSP4;
 
@@ -1412,4 +1412,3 @@ uint8_t DSP4GetByte(uint16_t address)
 
    return t;
 }
-

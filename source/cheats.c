@@ -123,9 +123,6 @@ void S9xStartCheatSearch(SCheatData* d)
 #define BIT_CLEAR(a,v) \
 (a)[(v) >> 5] &= ~(1 << ((v) & 31))
 
-#define BIT_SET(a,v) \
-(a)[(v) >> 5] |= 1 << ((v) & 31)
-
 #define TEST_BIT(a,v) \
 ((a)[(v) >> 5] & (1 << ((v) & 31)))
 

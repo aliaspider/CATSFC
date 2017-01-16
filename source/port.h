@@ -8,7 +8,12 @@
 #include <string.h>
 #include <sys/types.h>
 
-/* #define PIXEL_FORMAT RGB565 */
+#ifdef __GNUC__
+#define PACKING __attribute__ ((packed))
+#else
+#define PACKING
+#endif
+
 #ifdef PSP
 #define PIXEL_FORMAT BGR555
 #else
@@ -57,4 +62,3 @@ void S9xGenerateSound(void);
 #include <libretro.h>
 
 #endif
-

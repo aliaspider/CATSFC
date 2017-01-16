@@ -10,7 +10,7 @@ struct Band
 {
    uint32_t Left;
    uint32_t Right;
-};
+} PACKING;
 
 #undef MIN
 #undef MAX
@@ -674,4 +674,3 @@ Clip_ok:;
       } // for (int w...
    } // for (int c...
 }
-

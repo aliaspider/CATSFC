@@ -59,24 +59,22 @@
 
 typedef union
 {
+   uint16_t W;
 #ifdef MSB_FIRST
    struct
    {
       uint8_t h, l;
-   } B;
+   } PACKING B;
 #else
    struct
    {
       uint8_t l, h;
-   } B;
+   } PACKING B;
 #endif
-   uint16_t W;
 } pair;
 
 typedef struct
 {
-   uint8_t  PB;
-   uint8_t  DB;
    pair   P;
    pair   A;
    pair   D;
@@ -84,7 +82,8 @@ typedef struct
    pair   X;
    pair   Y;
    uint16_t PC;
-} SRegisters;
+   uint8_t  PB;
+   uint8_t  DB;
+} PACKING SRegisters;
 
 #endif
-

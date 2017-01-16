@@ -15,20 +15,6 @@
    if ((v) > 32767) \
 (v) = 32767
 
-#define CLIP16_latch(v,l) \
-   if ((v) < -32768) \
-{ (v) = -32768; (l)++; }\
-   else \
-   if ((v) > 32767) \
-{ (v) = 32767; (l)++; }
-
-#define CLIP24(v) \
-   if ((v) < -8388608) \
-    (v) = -8388608; \
-   else \
-   if ((v) > 8388607) \
-(v) = 8388607
-
 #define CLIP8(v) \
    if ((v) < -128) \
     (v) = -128; \
@@ -57,14 +43,10 @@ extern int32_t NoiseFreq [32];
 
 static int32_t noise_gen;
 
-#undef ABS
-#define ABS(a) ((a) < 0 ? -(a) : (a))
-
 #define FIXED_POINT 0x10000UL
 #define FIXED_POINT_REMAINDER 0xffffUL
 #define FIXED_POINT_SHIFT 16
 
-#define VOL_DIV8  0x8000
 #define VOL_DIV16 0x0080
 #define ENVX_SHIFT 24
 
@@ -114,7 +96,7 @@ void S9xSetEnvRate(Channel* ch, uint32_t rate, int direction, int target)
 {
    ch->envx_target = target;
 
-   if (rate == ~0UL)
+   if (rate == ~((uint32_t) 0u))
    {
       ch->direction = 0;
       rate = 0;
@@ -321,49 +303,6 @@ void S9xSetEnvelopeHeight(int channel, int level)
    if (ch->envx == 0 && ch->state != SOUND_SILENT && ch->state != SOUND_GAIN)
       S9xAPUSetEndOfSample(channel, ch);
 }
-
-int S9xGetEnvelopeHeight(int channel)
-{
-   if ((Settings.SoundEnvelopeHeightReading ||
-         SNESGameFixes.SoundEnvelopeHeightReading2) &&
-         SoundData.channels[channel].state != SOUND_SILENT &&
-         SoundData.channels[channel].state != SOUND_GAIN)
-      return (SoundData.channels[channel].envx);
-
-   //siren fix from XPP
-   if (SNESGameFixes.SoundEnvelopeHeightReading2 &&
-         SoundData.channels[channel].state != SOUND_SILENT)
-      return (SoundData.channels[channel].envx);
-
-   return (0);
-}
-
-#if 1
-void S9xSetSoundSample(int channel, uint16_t sample_number)
-{
-}
-#else
-void S9xSetSoundSample(int channel, uint16_t sample_number)
-{
-   register Channel* ch = &SoundData.channels[channel];
-
-   if (ch->state != SOUND_SILENT &&
-         sample_number != ch->sample_number)
-   {
-      int keep = ch->state;
-      ch->state = SOUND_SILENT;
-      ch->sample_number = sample_number;
-      ch->loop = false;
-      ch->needs_decode = true;
-      ch->last_block = false;
-      ch->previous [0] = ch->previous[1] = 0;
-      uint8_t* dir = S9xGetSampleAddress(sample_number);
-      ch->block_pointer = READ_WORD(dir);
-      ch->sample_pointer = 0;
-      ch->state = keep;
-   }
-}
-#endif
 
 void S9xSetSoundFrequency(int channel, int hertz)
 {
@@ -969,12 +908,6 @@ stereo_exit:
    }
 }
 
-// For backwards compatibility with older port specific code
-void S9xMixSamplesO(uint8_t* buffer, int sample_count, int byte_offset)
-{
-   S9xMixSamples(buffer + byte_offset, sample_count);
-}
-
 void S9xMixSamples(uint8_t* buffer, int sample_count)
 {
    int J;
@@ -1117,9 +1050,6 @@ void S9xResetSound(bool full)
       SoundData.echo_write_enabled = 0;
       SoundData.echo_channel_enable = 0;
       SoundData.pitch_mod = 0;
-      SoundData.dummy[0] = 0;
-      SoundData.dummy[1] = 0;
-      SoundData.dummy[2] = 0;
       SoundData.master_volume[0] = 0;
       SoundData.master_volume[1] = 0;
       SoundData.echo_volume[0] = 0;
@@ -1305,6 +1235,5 @@ void S9xPlaySample(int channel)
                   APU.DSP [APU_ADSR1 + (channel << 4)],
                   APU.DSP [APU_ADSR2 + (channel << 4)]);
 }
-
 
 #endif

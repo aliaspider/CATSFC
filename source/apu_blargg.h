@@ -82,6 +82,8 @@ typedef void (*dsp_copy_func_t)( unsigned char** io, void* state, size_t );
 
 typedef struct
 {
+   /* pointer to voice's DSP registers */
+   uint8_t* regs;
    /* decoded samples (twice the size to simplify wrap handling) */
    int buf [BRR_BUF_SIZE_X2];
    /* place in buffer where next samples will be decoded */
@@ -92,8 +94,6 @@ typedef struct
    int brr_addr;
    /* current decoding offset in BRR block */
    int brr_offset;
-   /* pointer to voice's DSP registers */
-   uint8_t* regs;
    /* bitmask for voice: 0x01 for voice 0, 0x02 for voice 1, etc. */
    int vbit;
    /* KON delay/current setup phase */
@@ -104,82 +104,79 @@ typedef struct
    /* used by GAIN mode 7, very obscure quirk */
    int hidden_env;
    uint8_t t_envx_out;
-} dsp_voice_t;
+} PACKING dsp_voice_t;
 
 typedef struct
 {
-   uint8_t regs [REGISTER_COUNT];
-
-   /* Echo history keeps most recent 8 samples
-           (twice the size to simplify wrap handling) */
-
-   int echo_hist [ECHO_HIST_SIZE_X2] [2];
-
-   int (*echo_hist_pos) [2]; /* &echo_hist [0 to 7] */
-
-   int every_other_sample; /* toggles every sample */
-   int kon;                /* KON value when last checked */
-   int noise;
-   int counter;
-   int echo_offset;        /* offset from ESA in echo buffer */
-   int echo_length;        /* number of bytes that echo_offset will stop at */
-   int phase;              /* next clock cycle to run (0-31) */
-
-   /* Hidden registers also written to when main register is written to */
-   int new_kon;
-   uint8_t endx_buf;
-   uint8_t envx_buf;
-   uint8_t outx_buf;
-
-   /* Temporary state between clocks */
-
-   /* read once per sample */
-   int t_pmon;
-   int t_non;
-   int t_eon;
-   int t_dir;
-   int t_koff;
-
-   /* read a few clocks ahead then used */
-   int t_brr_next_addr;
-   int t_adsr0;
-   int t_brr_header;
-   int t_brr_byte;
-   int t_srcn;
-   int t_esa;
-   int t_echo_enabled;
-
-   /* internal state that is recalculated every sample */
-   int t_dir_addr;
-   int t_pitch;
-   int t_output;
-   int t_looped;
-   int t_echo_ptr;
-
-   /* left/right sums */
-   int t_main_out [2];
-   int t_echo_out [2];
-   int t_echo_in  [2];
-
-   dsp_voice_t voices [VOICE_COUNT];
+   /* Echo history keeps most recent 8 samples (twice the size to simplify wrap handling) */
+   int       (*echo_hist_pos) [2]; /* &echo_hist [0 to 7] */
 
    /* non-emulation state */
-   uint8_t* ram; /* 64K shared RAM between DSP and SMP */
-   int16_t* out;
-   int16_t* out_end;
-   int16_t* out_begin;
-   int16_t extra [EXTRA_SIZE];
+   uint8_t*    ram; /* 64K shared RAM between DSP and SMP */
+   int16_t*    out;
+   int16_t*    out_end;
+   int16_t*    out_begin;
+   uint8_t*    rom;
+   uint8_t*    hi_ram;
 
-   int rom_enabled;
-   uint8_t *rom, *hi_ram;
-} dsp_state_t;
+   /* left/right sums */
+   int         t_main_out [2];
+   int         t_echo_out [2];
+   int         t_echo_in  [2];
+
+   int         echo_hist [ECHO_HIST_SIZE_X2] [2];
+   dsp_voice_t voices [VOICE_COUNT];
+   int16_t     extra [EXTRA_SIZE];
+   uint8_t     regs [REGISTER_COUNT];
+
+   int         every_other_sample; /* toggles every sample */
+   int         kon;                /* KON value when last checked */
+   int         noise;
+   int         counter;
+   int         echo_offset;        /* offset from ESA in echo buffer */
+   int         echo_length;        /* number of bytes that echo_offset will stop at */
+   int         phase;              /* next clock cycle to run (0-31) */
+
+   /* Hidden register also written to when main register is written to */
+   int         new_kon;
+
+   /* read once per sample */
+   int         t_pmon;
+   int         t_non;
+   int         t_eon;
+   int         t_dir;
+   int         t_koff;
+
+   /* read a few clocks ahead then used */
+   int         t_brr_next_addr;
+   int         t_adsr0;
+   int         t_brr_header;
+   int         t_brr_byte;
+   int         t_srcn;
+   int         t_esa;
+   int         t_echo_enabled;
+
+   /* internal state that is recalculated every sample */
+   int         t_dir_addr;
+   int         t_pitch;
+   int         t_output;
+   int         t_looped;
+   int         t_echo_ptr;
+
+   int         rom_enabled;
+
+   /* More hidden registers */
+   uint8_t     endx_buf;
+   uint8_t     envx_buf;
+   uint8_t     outx_buf;
+} PACKING dsp_state_t;
 
 #if !SPC_NO_COPY_STATE_FUNCS
 
 typedef struct {
-   dsp_copy_func_t func;
    unsigned char** buf;
-} spc_state_copy_t;
+   dsp_copy_func_t func;
+} PACKING spc_state_copy_t;
 
 #define SPC_COPY( type, state ) state = (type) spc_copier_copy_int(&copier, state, sizeof (type) );
 
@@ -233,16 +230,22 @@ typedef struct
    int divider;
    int enabled;
    int counter;
-} Timer;
+} PACKING Timer;
 
 /* Support SNES_MEMORY_APURAM */
 uint8_t *spc_apuram (void);
 
 typedef struct
 {
-   Timer timers [TIMER_COUNT];
-
-   uint8_t smp_regs [2] [REG_COUNT];
+   int16_t*      buf_begin;
+   int16_t*      buf_end;
+   int16_t*      extra_pos;
+   Timer         timers [TIMER_COUNT];
+   int16_t       extra_buf [EXTRA_SIZE];
+   uint8_t       smp_regs [2] [REG_COUNT];
+   unsigned char cycle_table [256];
+   uint8_t       rom    [ROM_SIZE];
+   uint8_t       hi_ram [ROM_SIZE];
 
    struct
    {
@@ -252,36 +255,25 @@ typedef struct
       int y;
       int psw;
       int sp;
-   } cpu_regs;
+   } PACKING cpu_regs;
 
-   int  dsp_time;
-   int  spc_time;
-
-   int         tempo;
-
-   int         extra_clocks;
-   int16_t*   buf_begin;
-   int16_t*	buf_end;
-   int16_t*   extra_pos;
-   int16_t    extra_buf [EXTRA_SIZE];
-
-   int         rom_enabled;
-   uint8_t     rom    [ROM_SIZE];
-   uint8_t     hi_ram [ROM_SIZE];
-
-   unsigned char cycle_table [256];
+   int dsp_time;
+   int spc_time;
+   int tempo;
+   int extra_clocks;
+   int rom_enabled;
 
    struct
    {
       /* padding to neutralize address overflow */
       union {
-         uint8_t padding1 [0x100];
+         uint8_t  padding1 [0x100];
          uint16_t align; /* makes compiler align data for 16-bit access */
       } padding1 [1];
       uint8_t ram      [0x10000];
       uint8_t padding2 [0x100];
-   } ram;
-} spc_state_t;
+   } PACKING ram;
+} PACKING spc_state_t;
 
 /* Number of samples written to output since last set */
 #define SPC_SAMPLE_COUNT() ((m.extra_clocks >> 5) * 2)

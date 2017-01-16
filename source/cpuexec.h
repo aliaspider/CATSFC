@@ -10,7 +10,7 @@ typedef struct
 #else
    void (*S9xOpcode)(void);
 #endif
-} SOpcodes;
+} PACKING SOpcodes;
 
 #include "ppu.h"
 #include "memmap.h"
@@ -27,20 +27,20 @@ typedef struct
 
 typedef struct
 {
-   uint8_t*  Speed;
-   SOpcodes* S9xOpcodes;
+   SOpcodes*  S9xOpcodes;
+   uint8_t*   Speed;
    SRegisters Registers;
-   uint8_t  _Carry;
-   uint8_t  _Zero;
-   uint8_t  _Negative;
-   uint8_t  _Overflow;
-   bool  CPUExecuting;
-   uint32_t ShiftedPB;
-   uint32_t ShiftedDB;
-   uint32_t Frame;
-   uint32_t Scanline;
-   uint32_t FrameAdvanceCount;
-} SICPU;
+   uint32_t   ShiftedPB;
+   uint32_t   ShiftedDB;
+   uint32_t   Frame;
+   uint32_t   Scanline;
+   uint32_t   FrameAdvanceCount;
+   uint8_t    _Carry;
+   uint8_t    _Zero;
+   uint8_t    _Negative;
+   uint8_t    _Overflow;
+   bool       CPUExecuting;
+} PACKING SICPU;
 
 void S9xMainLoop(void);
 void S9xReset(void);
@@ -132,4 +132,3 @@ static inline void S9xReschedule()
 }
 
 #endif
-
