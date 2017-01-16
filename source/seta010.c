@@ -572,12 +572,12 @@ void S9xSetST010(uint32_t Address, uint8_t Byte)
             x ^= y;
          }
 
-         int16_t approx = (y * 1007) + (x * 441);
+         int32_t approx = (y * 1007) + (x * 441);
          
          if (y < (x << 4))
             approx -= (y * 40);
 
-         square = (approx + 512) >> 10;
+         square = (int16_t) ((approx + 512) >> 10);
 
 #if defined(FAST_LSB_WORD_ACCESS) && !defined(ANDROID)
          /* TODO - FIXME */
